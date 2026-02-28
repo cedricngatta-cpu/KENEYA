@@ -166,8 +166,10 @@ export default function SignalerFlow() {
 
             // Détection automatique de la langue
             if (target === 'lang') {
-                const langFound = ['1', 'français', '2', 'dioula', '3', 'baoulé', '4', 'bété', '5', 'sénoufo'].some(l => liveText.includes(l));
-                if (langFound) setTimeout(() => stopListening(), 1000);
+                const langFound = ['1', 'un', 'français', 'francais', '2', 'deux', 'dioula', '3', 'trois', 'baoulé', 'baoule'].some(l => liveText.includes(l));
+                if (langFound) {
+                    stopListening(); // Coupe directement pour enchaîner sans délai (plus fluide sur mobile)
+                }
             }
             // Détection Oui/Non
             else if (target.startsWith('listen_') && target !== 'listen_other' && target !== 'listen_details') {
@@ -208,11 +210,10 @@ export default function SignalerFlow() {
             }
 
             if (target === 'lang') {
-                if (finalTranscript.includes('1') || finalTranscript.includes('français')) setUserLanguage('fr');
-                else if (finalTranscript.includes('2') || finalTranscript.includes('dioula')) setUserLanguage('dioula');
-                else if (finalTranscript.includes('3') || finalTranscript.includes('baoulé')) setUserLanguage('baoule');
-                else if (finalTranscript.includes('4') || finalTranscript.includes('bété')) setUserLanguage('bete');
-                else if (finalTranscript.includes('5') || finalTranscript.includes('sénoufo')) setUserLanguage('senoufo');
+                if (finalTranscript.includes('1') || finalTranscript.includes('un') || finalTranscript.includes('français') || finalTranscript.includes('francais')) setUserLanguage('fr');
+                else if (finalTranscript.includes('2') || finalTranscript.includes('deux') || finalTranscript.includes('dioula')) setUserLanguage('dioula');
+                else if (finalTranscript.includes('3') || finalTranscript.includes('trois') || finalTranscript.includes('baoulé') || finalTranscript.includes('baoule')) setUserLanguage('baoule');
+                else setUserLanguage('fr'); // Fallback sécurité
                 setStep('ask_fever');
             }
             else if (target === 'listen_fever') {
