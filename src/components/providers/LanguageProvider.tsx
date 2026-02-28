@@ -10,15 +10,13 @@ type LanguageContextType = {
 };
 
 const defaultTranslations: Record<string, string> = {
-    // Français de base (Fallback)
     'greeting': 'Bonjour, que puis-je pour vous ?',
     'select_lang': 'Choisissez votre langue / ethnie',
-    'symptom_fever': 'Fièvre',
-    'symptom_cough': 'Toux',
-    'symptom_diarrhea': 'Diarrhée',
-    'symptom_rash': 'Boutons',
-    'report_case': 'Signaler un cas (Vocal)',
     'view_map': 'Voir la carte',
+    'gps_request': 'L’accès GPS est nécessaire pour localiser l’alerte. Une fenêtre va s’ouvrir, veuillez cliquer sur AUTORISER.',
+    'ask_fever': 'Avez-vous de la fièvre ou des maux de tête depuis moins de 48 heures ?',
+    'ask_vomiting': 'Souffrez-vous de vomissements ou de diarrhées intenses ?',
+    'ask_rash': 'Avez-vous des boutons ou des plaques rouges sur la peau ?',
 };
 
 // Traductions hybrides (Contexte local, Termes Médicaux en FR pour précision)

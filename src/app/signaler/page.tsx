@@ -166,16 +166,17 @@ export default function SignalerFlow() {
 
             // Détection automatique de la langue (très résistante aux bruits et phrases parasites)
             if (target === 'lang') {
-                // Création d'un dictionnaire de détection très souple pour le mobile
-                const optionsFR = ['1', 'un', 'francais', 'français', 'france'];
-                const optionsDioula = ['2', 'deux', 'dioula', 'jula'];
-                const optionsBaoule = ['3', 'trois', 'baoule', 'baoulé'];
+                const isFr = ['1', 'un', 'francais', 'français', 'france'].some(word => liveText.includes(word));
+                const isDioula = ['2', 'deux', 'dioula', 'jula'].some(word => liveText.includes(word));
+                const isBaoule = ['3', 'trois', 'baoule', 'baoulé'].some(word => liveText.includes(word));
 
-                const isFr = optionsFR.some(word => liveText.includes(word));
-                const isDioula = optionsDioula.some(word => liveText.includes(word));
-                const isBaoule = optionsBaoule.some(word => liveText.includes(word));
+                // Priorité absolue au Français si détecté
+                if (isFr) {
+                    stopListening();
+                    return;
+                }
 
-                if (isFr || isDioula || isBaoule) {
+                if (isDioula || isBaoule) {
                     stopListening(); // Coupe directement pour enchaîner sans délai
                 }
             }
@@ -222,12 +223,15 @@ export default function SignalerFlow() {
                 const isDioula = ['2', 'deux', 'dioula', 'jula'].some(w => finalTranscript.includes(w));
                 const isBaoule = ['3', 'trois', 'baoule', 'baoulé'].some(w => finalTranscript.includes(w));
 
-                if (isDioula) {
+                if (isFr) {
+                    // Priorité absolue au Français (Scénario 1)
+                    setUserLanguage('fr');
+                } else if (isDioula) {
                     setUserLanguage('dioula');
                 } else if (isBaoule) {
                     setUserLanguage('baoule');
                 } else {
-                    // Par défaut et de force : Français si "1", "un" ou si incompréhension
+                    // Par défaut et de force : Français si incompréhension
                     setUserLanguage('fr');
                 }
                 setStep('ask_fever');
@@ -380,7 +384,7 @@ export default function SignalerFlow() {
                 : `D'après vos symptômes ${patientName}, il s'agit probablement de ${suspectedIllness}. ${instructions.join(' ')}`;
             speakText(msg, 'end');
         }
-    }, [step, diagnosis, suspectedIllness, instructions, hospitalRecommendation, patientName]);
+    }, [step, diagnosis, suspectedIllness, instructions, hospitalRecommendation, patientName, t]);
 
 
 
