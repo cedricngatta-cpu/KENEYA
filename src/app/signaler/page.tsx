@@ -13,7 +13,7 @@ export default function SignalerFlow() {
     // Le flow suit le protocole strict demandé
     // Nouveaux états pour le flow conversationnel détaillé
     const [step, setStep] = useState<
-        'intro' | 'greeting_vocal' | 'listening_contact' | 'listening_lang' | 'lang' |
+        'intro' | 'greeting_vocal' | 'listening_contact' | 'listening_lang' | 'lang' | 'ask_contact' |
         'ask_fever' | 'listen_fever' |
         'ask_digestive' | 'listen_digestive' |
         'ask_rash' | 'listen_rash' |
@@ -63,14 +63,14 @@ export default function SignalerFlow() {
                     // Notification vocale de succès
                     const successMsg = new SpeechSynthesisUtterance("Merci. Je commence à vous écouter.");
                     successMsg.lang = 'fr-FR';
-                    successMsg.onend = () => setStep('greeting_vocal');
+                    successMsg.onend = () => setStep('ask_contact');
                     window.speechSynthesis.speak(successMsg);
                 },
                 (err) => {
                     setGpsStatus('denied');
                     const failMsg = new SpeechSynthesisUtterance("D'accord. Je commence à vous écouter.");
                     failMsg.lang = 'fr-FR';
-                    failMsg.onend = () => setStep('greeting_vocal');
+                    failMsg.onend = () => setStep('ask_contact');
                     window.speechSynthesis.speak(failMsg);
                 },
                 { enableHighAccuracy: true, timeout: 8000 }
@@ -211,10 +211,15 @@ export default function SignalerFlow() {
                 }
 
                 const phone = phoneMatch[0];
-                const name = finalTranscript.replace(/\d+/g, '').trim() || 'Anonyme';
-                setPatientName(name);
+                // Extraction du premier nom/prénom
+                let rawName = finalTranscript.replace(/\d+/g, '').trim() || 'Détenteur';
+                let firstName = rawName.split(' ')[0];
+                firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+
+                const fullName = `Monsieur ou Madame ${firstName}`;
+                setPatientName(fullName);
                 setPatientPhone(phone);
-                setStep('listening_lang'); // Après le contact, on demande la langue
+                setStep('ask_fever'); // Directement vers les symptômes après le contact
                 return;
             }
 
@@ -234,7 +239,7 @@ export default function SignalerFlow() {
                     // Par défaut et de force : Français si incompréhension
                     setUserLanguage('fr');
                 }
-                setStep('ask_fever');
+                setStep('lang');
             }
             else if (target === 'listen_fever') {
                 if (finalTranscript.includes('oui') || finalTranscript.includes('ouais')) {
@@ -351,25 +356,30 @@ export default function SignalerFlow() {
             // Après le choix de la langue, on demande le GPS
             requestGPS();
         }
+        else if (step === 'ask_contact') {
+            speakText(t('ask_contact_info'), 'listening_contact');
+        } else if (step === 'listening_contact') {
+            startListening('listen_contact');
+        }
         else if (step === 'ask_fever') {
             // Sécurité : On s'assure que si on a répondu 1, la question suivante est bien dite en français.
-            const textToSpeak = t('ask_fever') || "Avez-vous de la fièvre ou des maux de tête depuis moins de 48 heures ?";
+            const textToSpeak = `${patientName}, ${t('ask_fever') || "Avez-vous de la fièvre ou des maux de tête depuis moins de 48 heures ?"}`;
             speakText(textToSpeak, 'listen_fever');
         } else if (step === 'listen_fever') {
             startListening('listen_fever');
         }
         else if (step === 'ask_digestive') {
-            speakText(t('ask_vomiting'), 'listen_digestive');
+            speakText(`${patientName}, ${t('ask_vomiting')}`, 'listen_digestive');
         } else if (step === 'listen_digestive') {
             startListening('listen_digestive');
         }
         else if (step === 'ask_rash') {
-            speakText(t('ask_rash'), 'listen_rash');
+            speakText(`${patientName}, ${t('ask_rash')}`, 'listen_rash');
         } else if (step === 'listen_rash') {
             startListening('listen_rash');
         }
         else if (step === 'ask_other') {
-            speakText("Avez-vous d'autres symptômes particuliers ? Si oui, dites lesquels, sinon dites Non.", 'listen_other');
+            speakText(`${patientName}, avez-vous d'autres symptômes particuliers ? Si oui, dites lesquels, sinon dites Non.`, 'listen_other');
         } else if (step === 'listen_other') {
             startListening('listen_other');
         }
@@ -439,7 +449,7 @@ export default function SignalerFlow() {
                 )}
 
                 {/* ETAPES VOCALES (IA PARLE) */}
-                {(step === 'greeting_vocal' || step.startsWith('ask_') || step === 'result_vocal') && (
+                {(step === 'greeting_vocal' || step === 'ask_contact' || step.startsWith('ask_') || step === 'result_vocal') && (
                     <div className="flex-1 flex flex-col items-center justify-center w-full animate-in zoom-in-95 duration-700">
                         <div className={`w-32 h-32 rounded-full flex items-center justify-center mb-6 relative animate-bounce
                             ${diagnosis === 'danger' && step === 'result_vocal' ? 'bg-keneya-red shadow-[0_0_40px_rgba(201,42,42,0.5)]' : 'bg-keneya-green shadow-[0_0_40px_rgba(70,131,62,0.5)]'}

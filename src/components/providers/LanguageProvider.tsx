@@ -17,6 +17,7 @@ const defaultTranslations: Record<string, string> = {
     'ask_fever': 'Avez-vous de la fièvre ou des maux de tête depuis moins de 48 heures ?',
     'ask_vomiting': 'Souffrez-vous de vomissements ou de diarrhées intenses ?',
     'ask_rash': 'Avez-vous des boutons ou des plaques rouges sur la peau ?',
+    'ask_contact_info': 'Veuillez nous dire votre nom et votre numéro de téléphone.',
 };
 
 // Traductions hybrides (Contexte local, Termes Médicaux en FR pour précision)
@@ -28,6 +29,7 @@ const dioulaTranslations: Record<string, string> = {
     'ask_fever': 'I bɛ a sɔrɔ ko fari tɛ gbegbe wa? **FIÈVRE** b’i la?',
     'ask_vomiting': 'I bɛ **VOMIR** wa? N’o tɛ i bɛ **DIARRHÉE** kɛ?',
     'ask_rash': 'Boutons b’i fari la wa? **ÉRUPTION CUTANÉE** b’i la?',
+    'ask_contact_info': 'I tɔgɔ n’i ka nimɛrɔ fɔ an ye.',
 };
 
 const baouleTranslations: Record<string, string> = {
@@ -36,12 +38,14 @@ const baouleTranslations: Record<string, string> = {
     'gps_request': 'N koni mo i wounou. Sran kun nzan o lika. Flouwa ka o sran nan: miɛ i su ko **AUTORISER**.',
     'ask_fever': 'O wounou hien wa? **FIÈVRE** o i su?',
     'ask_vomiting': 'O **VOMIR** wa? N’o tɛ o kɛ **DIARRHÉE**?',
+    'ask_contact_info': 'Amun dunman ni niméro ye o yɛ?',
 };
 
 const beteTranslations: Record<string, string> = {
     'greeting': 'A ni ké. Miman o n’on ?',
     'gps_request': 'N n’on gni o djédjé. Gnibi kun o sran. Flouwa o sran nan: miɛ i su ko **AUTORISER**.',
     'ask_fever': 'O wounou hié wa? **FIÈVRE** o i su?',
+    'ask_contact_info': 'N’on fɔ miman ni niméro.',
 };
 
 const LanguageContext = createContext<LanguageContextType>({
