@@ -164,11 +164,19 @@ export default function SignalerFlow() {
             setTranscript(current);
             transcriptRef.current = current;
 
-            // Détection automatique de la langue
+            // Détection automatique de la langue (très résistante aux bruits et phrases parasites)
             if (target === 'lang') {
-                const langFound = ['1', 'un', 'français', 'francais', '2', 'deux', 'dioula', '3', 'trois', 'baoulé', 'baoule'].some(l => liveText.includes(l));
-                if (langFound) {
-                    stopListening(); // Coupe directement pour enchaîner sans délai (plus fluide sur mobile)
+                // Création d'un dictionnaire de détection très souple pour le mobile
+                const optionsFR = ['1', 'un', 'francais', 'français', 'france'];
+                const optionsDioula = ['2', 'deux', 'dioula', 'jula'];
+                const optionsBaoule = ['3', 'trois', 'baoule', 'baoulé'];
+
+                const isFr = optionsFR.some(word => liveText.includes(word));
+                const isDioula = optionsDioula.some(word => liveText.includes(word));
+                const isBaoule = optionsBaoule.some(word => liveText.includes(word));
+
+                if (isFr || isDioula || isBaoule) {
+                    stopListening(); // Coupe directement pour enchaîner sans délai
                 }
             }
             // Détection Oui/Non
@@ -210,10 +218,18 @@ export default function SignalerFlow() {
             }
 
             if (target === 'lang') {
-                if (finalTranscript.includes('1') || finalTranscript.includes('un') || finalTranscript.includes('français') || finalTranscript.includes('francais')) setUserLanguage('fr');
-                else if (finalTranscript.includes('2') || finalTranscript.includes('deux') || finalTranscript.includes('dioula')) setUserLanguage('dioula');
-                else if (finalTranscript.includes('3') || finalTranscript.includes('trois') || finalTranscript.includes('baoulé') || finalTranscript.includes('baoule')) setUserLanguage('baoule');
-                else setUserLanguage('fr'); // Fallback sécurité
+                const isFr = ['1', 'un', 'francais', 'français', 'france'].some(w => finalTranscript.includes(w));
+                const isDioula = ['2', 'deux', 'dioula', 'jula'].some(w => finalTranscript.includes(w));
+                const isBaoule = ['3', 'trois', 'baoule', 'baoulé'].some(w => finalTranscript.includes(w));
+
+                if (isDioula) {
+                    setUserLanguage('dioula');
+                } else if (isBaoule) {
+                    setUserLanguage('baoule');
+                } else {
+                    // Par défaut et de force : Français si "1", "un" ou si incompréhension
+                    setUserLanguage('fr');
+                }
                 setStep('ask_fever');
             }
             else if (target === 'listen_fever') {
@@ -332,7 +348,9 @@ export default function SignalerFlow() {
             requestGPS();
         }
         else if (step === 'ask_fever') {
-            speakText(t('ask_fever'), 'listen_fever');
+            // Sécurité : On s'assure que si on a répondu 1, la question suivante est bien dite en français.
+            const textToSpeak = t('ask_fever') || "Avez-vous de la fièvre ou des maux de tête depuis moins de 48 heures ?";
+            speakText(textToSpeak, 'listen_fever');
         } else if (step === 'listen_fever') {
             startListening('listen_fever');
         }
