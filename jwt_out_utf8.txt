@@ -1,0 +1,4 @@
+--- ANON KEY JWT PAYLOAD ---
+{"iss":"supabase","ref":"eftvwdblkisbrehdumua","role":"eftvwdblkisbrehdumua","role":"anon","iat":1772215599,"exp":2087791599}
+--- SERVICE ROLE KEY JWT PAYLOAD ---
+{"iss":"supabase","ref":"eftvwdblkisbrehdumua","role":"service_role","iat":1772215599,"exp":2087791599}

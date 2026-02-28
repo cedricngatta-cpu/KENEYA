@@ -21,12 +21,29 @@ const defaultTranslations: Record<string, string> = {
     'view_map': 'Voir la carte',
 };
 
-// Traductions locales (Les mots cliniques restent en FR)
+// Traductions hybrides (Contexte local, Termes Médicaux en FR pour précision)
 const dioulaTranslations: Record<string, string> = {
     'greeting': 'I ni tché. É bɛ mun kɛ ?',
     'select_lang': 'I ka kan sugandi',
-    'report_case': 'A fɔ (Signaler)',
-    'view_map': 'Karta lajɛ',
+    'gps_request': 'I dɛmɛnna kadi, n bɛ a fɛ ka i sɔrɔ yɔrɔ lɔn. Fen dogonin dɔ bɛna n’i ka gasi la: lɔn k’a lɔ k’a fɔ ko **AUTORISER**.',
+    'ask_vitals': 'I i tché. An bɛna a daminɛ ni biométrie constantes ye.',
+    'ask_fever': 'I bɛ a sɔrɔ ko fari tɛ gbegbe wa? **FIÈVRE** b’i la?',
+    'ask_vomiting': 'I bɛ **VOMIR** wa? N’o tɛ i bɛ **DIARRHÉE** kɛ?',
+    'ask_rash': 'Boutons b’i fari la wa? **ÉRUPTION CUTANÉE** b’i la?',
+};
+
+const baouleTranslations: Record<string, string> = {
+    'greeting': 'Mo. É boti ni wa ?',
+    'select_lang': 'Faa o ani kpli',
+    'gps_request': 'N koni mo i wounou. Sran kun nzan o lika. Flouwa ka o sran nan: miɛ i su ko **AUTORISER**.',
+    'ask_fever': 'O wounou hien wa? **FIÈVRE** o i su?',
+    'ask_vomiting': 'O **VOMIR** wa? N’o tɛ o kɛ **DIARRHÉE**?',
+};
+
+const beteTranslations: Record<string, string> = {
+    'greeting': 'A ni ké. Miman o n’on ?',
+    'gps_request': 'N n’on gni o djédjé. Gnibi kun o sran. Flouwa o sran nan: miɛ i su ko **AUTORISER**.',
+    'ask_fever': 'O wounou hié wa? **FIÈVRE** o i su?',
 };
 
 const LanguageContext = createContext<LanguageContextType>({
@@ -39,10 +56,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const [userLanguage, setUserLanguage] = useState('fr');
 
     const t = (key: string) => {
-        if (userLanguage === 'dioula') {
-            return dioulaTranslations[key] || defaultTranslations[key] || key;
-        }
-        return defaultTranslations[key] || key;
+        const dicts: Record<string, Record<string, string>> = {
+            'dioula': dioulaTranslations,
+            'baoule': baouleTranslations,
+            'bete': beteTranslations
+        };
+        const currentDict = dicts[userLanguage];
+        return (currentDict && currentDict[key]) || defaultTranslations[key] || key;
     };
 
     return (

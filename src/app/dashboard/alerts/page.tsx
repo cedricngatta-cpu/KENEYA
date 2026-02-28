@@ -5,8 +5,16 @@ import { createClient } from '@/lib/supabase/client';
 import {
     BellRing, Smartphone, MessageCircle, Mic, Send, AlertTriangle,
     Users, MapPin, Globe, CheckCircle2, Activity, Shield, Clock,
-    RefreshCw, Loader2, X
+    RefreshCw, Loader2, X, Bot, Sparkles, Droplets, Bug
 } from 'lucide-react';
+
+const EPIDEMIES = [
+    { value: 'all', label: 'Toutes les maladies' },
+    { value: 'Dengue', label: 'Dengue', icon: Bug },
+    { value: 'Méningite', label: 'Méningite', icon: Activity },
+    { value: 'Choléra', label: 'Choléra', icon: Droplets },
+    { value: 'COVID-19', label: 'COVID-19 / Grippe', icon: Activity }
+];
 
 const ABIDJAN_ZONES = [
     { value: 'all', label: 'Tout Abidjan (Alerte Générale)' },
@@ -39,11 +47,15 @@ export default function BroadcastAlertsDashboard() {
 
     const [selectedChannel, setSelectedChannel] = useState<'sms' | 'telegram' | 'voice'>('telegram');
     const [targetZone, setTargetZone] = useState('all');
+    const [targetEpidemy, setTargetEpidemy] = useState('all');
     const [zoneOpen, setZoneOpen] = useState(false);
+    const [epidemyOpen, setEpidemyOpen] = useState(false);
     const [zoneSearch, setZoneSearch] = useState('');
     const [message, setMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
+    const [specificNumbers, setSpecificNumbers] = useState('');
 
     const [history, setHistory] = useState<BroadcastRow[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
@@ -95,6 +107,37 @@ export default function BroadcastAlertsDashboard() {
         setLoadingHistory(false);
     }
 
+    const handleGenerateIAMessage = async () => {
+        if (targetEpidemy === 'all' && targetZone === 'all') {
+            setMessage("Veuillez d'abord sélectionner au moins une zone ou une épidémie pour que l'IA soit précise.");
+            return;
+        }
+
+        setIsGeneratingMessage(true);
+        try {
+            const res = await fetch('/api/notifications/generate-alert-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    zone: targetZone,
+                    epidemy: targetEpidemy === 'all' ? 'maladie' : targetEpidemy
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.message) {
+                setMessage(data.message);
+            } else {
+                setMessage("Erreur lors de la génération. Veuillez réessayer.");
+            }
+        } catch (err) {
+            console.error(err);
+            setMessage("L'IA est momentanément indisponible.");
+        } finally {
+            setIsGeneratingMessage(false);
+        }
+    };
+
     const handleBroadcast = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim()) return;
@@ -104,12 +147,32 @@ export default function BroadcastAlertsDashboard() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
-            await (supabase as any).from('broadcasts').insert({
-                channel: selectedChannel,
-                zone: targetZone,
-                message: message.trim(),
-                sent_by: user?.id || null,
-            });
+            if (selectedChannel === 'sms') {
+                // Notre nouvelle route pour un envoi SMS (qui inclura aussi notre test)
+                const res = await fetch('/api/notifications/broadcast-sms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        zone: targetZone,
+                        message: message.trim(),
+                        senderId: user?.id,
+                        specificNumbers: specificNumbers.trim()
+                    })
+                });
+
+                if (!res.ok) throw new Error("Erreur serveur SMS");
+
+                const result = await res.json();
+                console.log("Résultat Envoi:", result);
+            } else {
+                // Méthode existante (sauvegarde classique)
+                await (supabase as any).from('broadcasts').insert({
+                    channel: selectedChannel,
+                    zone: targetZone,
+                    message: message.trim(),
+                    sent_by: user?.id || null,
+                });
+            }
 
             setIsSending(false);
             setIsSuccess(true);
@@ -122,6 +185,7 @@ export default function BroadcastAlertsDashboard() {
         } catch (err) {
             console.error('Erreur envoi:', err);
             setIsSending(false);
+            alert("Une erreur est survenue lors de l'envoi.");
         }
     };
 
@@ -203,15 +267,67 @@ export default function BroadcastAlertsDashboard() {
                             </div>
                         </div>
 
-                        {/* 2. ZONE */}
+                        {/* 2. ÉPIDÉMIE */}
                         <div>
+                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Bug size={14} /> 2. Épidémie / Maladie Ciblée (Pour IA)
+                            </h3>
+                            <div className="relative z-20">
+                                <button
+                                    type="button"
+                                    onClick={() => { setEpidemyOpen(!epidemyOpen); setZoneOpen(false); }}
+                                    className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 font-bold text-base rounded-2xl px-5 py-4 text-left flex items-center justify-between focus:outline-none focus:border-keneya-navy hover:border-slate-300 transition-all"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <Activity size={18} className="text-keneya-red" />
+                                        {EPIDEMIES.find(z => z.value === targetEpidemy)?.label || 'Sélectionner une épidémie'}
+                                    </span>
+                                    <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${epidemyOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+
+                                {epidemyOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setEpidemyOpen(false)}></div>
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-20 overflow-hidden">
+                                            <div className="max-h-56 overflow-y-auto">
+                                                {EPIDEMIES.map((z) => {
+                                                    const IconCmp = z.icon || Activity;
+                                                    return (
+                                                        <button
+                                                            key={z.value}
+                                                            type="button"
+                                                            onClick={() => { setTargetEpidemy(z.value); setEpidemyOpen(false); }}
+                                                            className={`w-full text-left px-5 py-3 text-sm font-bold flex items-center justify-between transition-colors ${targetEpidemy === z.value
+                                                                ? 'bg-keneya-red/5 text-keneya-red'
+                                                                : 'text-slate-600 hover:bg-slate-50'
+                                                                }`}
+                                                        >
+                                                            <span className="flex items-center gap-3">
+                                                                <IconCmp size={14} className={targetEpidemy === z.value ? 'text-keneya-red' : 'text-slate-300'} />
+                                                                {z.label}
+                                                            </span>
+                                                            {targetEpidemy === z.value && (
+                                                                <CheckCircle2 size={16} className="text-keneya-red" />
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 3. ZONE */}
+                        <div className="relative z-10">
                             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-                                2. Ciblage Géographique
+                                3. Ciblage Géographique
                             </h3>
                             <div className="relative">
                                 <button
                                     type="button"
-                                    onClick={() => { setZoneOpen(!zoneOpen); setZoneSearch(''); }}
+                                    onClick={() => { setZoneOpen(!zoneOpen); setEpidemyOpen(false); setZoneSearch(''); }}
                                     className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 font-bold text-base rounded-2xl px-5 py-4 text-left flex items-center justify-between focus:outline-none focus:border-keneya-navy hover:border-slate-300 transition-all"
                                 >
                                     <span className="flex items-center gap-3">
@@ -267,17 +383,38 @@ export default function BroadcastAlertsDashboard() {
                             </div>
                         </div>
 
-                        {/* 3. MESSAGE */}
-                        <div>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                                    3. Contenu de l'Alerte
-                                </h3>
-                                {selectedChannel !== 'sms' && (
-                                    <span className="text-xs font-bold text-keneya-green bg-keneya-green/10 px-3 py-1 rounded-full flex items-center gap-1">
-                                        <Globe size={14} /> Traduction IA Auto
-                                    </span>
+                        {/* 3.B NUMÉROS SPÉCIFIQUES (OPTIONNEL) */}
+                        <div className="relative z-10">
+                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
+                                Optionnel : Numéros spécifiques
+                            </h3>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={specificNumbers}
+                                    onChange={(e) => setSpecificNumbers(e.target.value)}
+                                    placeholder="Ex: 2250104617601, 2250564913501 (séparés par des virgules)"
+                                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-keneya-navy transition-colors"
+                                />
+                                {specificNumbers.trim().length > 0 && (
+                                    <p className="mt-2 text-xs font-medium text-amber-600 flex items-center gap-1">
+                                        <AlertTriangle size={12} /> La sélection géographique (Zone) sera ignorée. Le message ne sera envoyé qu'à ces numéros.
+                                    </p>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* 4. MESSAGE */}
+                        <div className="relative z-0">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                                    4. Contenu de l'Alerte
+                                </h3>
+
+                                <button type="button" onClick={handleGenerateIAMessage} disabled={isGeneratingMessage} className="text-xs font-bold text-purple-600 bg-purple-50 border border-purple-200 px-3 py-2 rounded-xl flex items-center gap-2 hover:bg-purple-100 hover:border-purple-300 transition-colors shadow-sm active:scale-95 disabled:opacity-50">
+                                    {isGeneratingMessage ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                    Générer avec l'IA
+                                </button>
                             </div>
                             <textarea
                                 required

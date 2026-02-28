@@ -38,7 +38,12 @@ export interface Database {
                 Row: {
                     id: string
                     user_id: string | null
+                    patient_name: string | null
+                    patient_phone: string | null
                     symptoms: Json
+                    symptoms_text: string | null
+                    suspected_illness: string | null
+                    metadata: Json | null
                     audio_url: string | null
                     geo_cell: string | null
                     severity: 'vert' | 'jaune' | 'rouge'
@@ -47,16 +52,27 @@ export interface Database {
                 Insert: {
                     id?: string
                     user_id?: string | null
+                    patient_name?: string | null
+                    patient_phone?: string | null
                     symptoms: Json
+                    symptoms_text?: string | null
+                    suspected_illness?: string | null
+                    metadata?: Json | null
                     audio_url?: string | null
                     geo_cell?: string | null
                     severity: string
                     created_at?: string
                 }
                 Update: {
+                    patient_name?: string | null
+                    patient_phone?: string | null
                     symptoms?: Json
+                    symptoms_text?: string | null
+                    suspected_illness?: string | null
+                    metadata?: Json | null
                     severity?: string
                     geo_cell?: string | null
+                    audio_url?: string | null
                 }
             }
             clinical_cases: {

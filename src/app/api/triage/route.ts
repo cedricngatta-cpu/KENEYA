@@ -23,88 +23,61 @@ export async function POST(req: Request) {
         const body: TriageRequest = await req.json();
         const text = body.transcript.toLowerCase();
 
-        // 1. Detection du syndrome et de la gravité selon les mots-clés
+        // 1. Detection du syndrome et de la gravité selon les mots-clés de la Base de Données
         let syndrome: TriageResponse['syndrome'] = 'unknown';
         let diagnosis: TriageResponse['diagnosis'] = 'safe';
-        let illness = "Non déterminé";
-        let reasoning = "";
-        let instructions: string[] = ["Reposez-vous et buvez de l'eau."];
+        let illness = "Alarme non identifiée";
+        let reasoning = "Symptômes non spécifiques nécessitant une évaluation standard.";
+        let instructions: string[] = ["Reposez-vous et hydratez-vous.", "Consultez si les symptômes persistent après 48h."];
         let hospital = undefined;
 
-        // A. Syndrome Digestif
-        if (text.includes('diarrhée') || text.includes('vomissement') || text.includes('déshydratation')) {
-            syndrome = 'digestif';
-            if (text.includes('riz') || text.includes('abondante') || text.includes('soif')) {
-                diagnosis = 'danger';
-                illness = "Choléra Suspect";
-                reasoning = "Présence de diarrhée aqueuse profuse avec risque de déshydratation rapide.";
-                instructions = ["Buvez immédiatement de la solution de réhydratation orale (SRO)", "Rendez-vous aux urgences immédiatement."];
-                hospital = "Centre de Traitement du Choléra (CTC) le plus proche";
-            } else {
-                diagnosis = 'warning';
-                illness = "Typhoïde ou Gastro-entérite";
-                instructions = ["Consultez un centre de santé dans les 24h", "Continuez à vous hydrater."];
+        // Récupération dynamique depuis la BDD (table configurée dans le panel Admin)
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+        const { createClient } = require('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        const { data: dbDiseases } = await supabase.from('diseases').select('*');
+
+        if (dbDiseases && dbDiseases.length > 0) {
+            // Trie par sévérité pour que les urgences ROUGES priment
+            const sortedDiseases = dbDiseases.sort((a: any, b: any) => {
+                if (a.severity_level === 'rouge' && b.severity_level !== 'rouge') return -1;
+                if (b.severity_level === 'rouge' && a.severity_level !== 'rouge') return 1;
+                return 0;
+            });
+
+            for (const disease of sortedDiseases) {
+                const keywords = disease.keywords || [];
+                // Cherche si un des mots clés de la maladie est dans la transcription
+                const hasMatch = keywords.some((keyword: string) => text.includes(keyword.toLowerCase()));
+
+                if (hasMatch) {
+                    illness = disease.name;
+                    syndrome = 'unknown'; // Pourrait être enrichi dans la DB
+
+                    if (disease.severity_level === 'rouge') {
+                        diagnosis = 'danger';
+                        reasoning = `Détection d'un mot-clé critique associé à : ${disease.name}.`;
+                        instructions = ["URGENCE ABSOLUE : Rendez-vous à l'hôpital immédiatement", "Évitez les contacts étroits"];
+                    } else if (disease.severity_level === 'jaune') {
+                        diagnosis = 'warning';
+                        reasoning = `Symptôme suspect correspondant à : ${disease.name}.`;
+                        instructions = ["Consultez un centre de santé dans les 24h", "Surveillez l'évolution"];
+                    } else {
+                        diagnosis = 'safe';
+                        instructions = ["Repos recommandé"];
+                    }
+
+                    break; // On s'arrête à la maladie la plus grave trouvée
+                }
             }
-        }
-        // E. Syndrome Neurologique (Prioritaire sur le reste car URGENCE systématique)
-        else if (text.includes('nuque') || text.includes('confusion') || text.includes('convulsion') || text.includes('photophobie')) {
-            syndrome = 'neurologique';
-            diagnosis = 'danger';
-            illness = "Méningite Suspecte";
-            reasoning = "Signes neurologiques graves associés à une forte fièvre.";
-            instructions = ["URGENCE ABSOLUE : Appelez une ambulance", "Ne restez pas seul."];
-            hospital = "CHU (Service Neurologie/Urgences)";
-        }
-        // C. Syndrome Hémorragique
-        else if (text.includes('jaunisse') || text.includes('jaune') || text.includes('saigne') || text.includes('sang')) {
-            syndrome = 'hemorragique';
-            diagnosis = 'danger';
-            illness = "Fièvre Hémorragique ou Fièvre Jaune";
-            reasoning = "Présence de jaunisse ou de saignements anormaux avec fièvre.";
-            instructions = ["Isolement immédiat", "Transfert urgent vers une unité spécialisée."];
-            hospital = "CHU de Treichville (Maladies Infectieuses)";
-        }
-        // B. Syndrome Moustiques
-        else if (text.includes('moustique') || text.includes('dengue') || text.includes('palu') || text.includes('yeux') || text.includes('articulation')) {
-            syndrome = 'moustiques';
-            if (text.includes('rash') || text.includes('éruption') || text.includes('saignement')) {
+        } else {
+            // Fallback (Base vide ou erreur) - Traitement minimal
+            if (text.includes('sang') || text.includes('respirer') || text.includes('inconscient')) {
                 diagnosis = 'danger';
-                illness = "Dengue Sévère";
-                instructions = ["Consultez en urgence", "Pas d'aspirine avant diagnostic."];
-            } else {
-                diagnosis = 'warning';
-                illness = "Paludisme ou Dengue simple";
-                instructions = ["Faites un test de diagnostic rapide (TDR)", "Consultez un infirmier."];
-            }
-        }
-        // D. Syndrome Respiratoire
-        else if (text.includes('toux') || text.includes('respirer') || text.includes('souffle') || text.includes('coeur') || text.includes('poitrine')) {
-            syndrome = 'respiratoire';
-            if (text.includes('étouffe') || text.includes('mal à respirer') || text.includes('douleur poitrine')) {
-                diagnosis = 'danger';
-                illness = "Détresse Respiratoire (COVID Sévère/Pneumonie)";
-                instructions = ["Oxygène requis", "Rendez-vous aux urgences."];
-                hospital = "SAMU / Urgences Respiratoires";
-            } else {
-                diagnosis = 'warning';
-                illness = "Infection Respiratoire (COVID/Grippe)";
-                instructions = ["Isolez-vous", "Portez un masque", "Surveillez votre respiration."];
-            }
-        }
-        // F. Syndrome Rash
-        else if (text.includes('bouton') || text.includes('éruption') || text.includes('peau') || text.includes('rash')) {
-            syndrome = 'rash';
-            if (text.includes('ganglion') || text.includes('douloureux')) {
-                illness = "Mpox (Variole Simienne)";
-                diagnosis = 'warning';
-                instructions = ["Évitez tout contact peau-à-peau", "Isolément strict."];
-            } else if (text.includes('yeux rouges') || text.includes('rhume')) {
-                illness = "Rougeole";
-                diagnosis = 'warning';
-                instructions = ["Alerte vaccination requise", "Isolez les enfants."];
-            } else {
-                diagnosis = 'warning';
-                illness = "Éruption suspecte";
+                illness = 'Urgence Critique Possible';
+                instructions = ["Appelez ou rendez-vous aux urgences."];
             }
         }
 

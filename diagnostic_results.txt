@@ -1,0 +1,8 @@
+--- START GLOBAL DIAGNOSTIC ---
+URL: https://eftvwdblkisbrehdumua.supabase.co
+
+Testing ANON_KEY...
+SUCCESS: ANON_KEY is valid.
+
+Testing SERVICE_ROLE_KEY...
+SUCCESS: SERVICE_ROLE_KEY is valid.

@@ -24,8 +24,9 @@ export default function LoginPage() {
             // Pour KENEYA, on utilise l'email simulé via le téléphone pour Supabase Auth simple
             // ou on peut utiliser le téléphone directement si configuré.
             // Ici on simule une connexion par téléphone (simplifiée pour le prototype)
+            const cleanPhone = phone.replace(/\s+/g, '')
             const { data, error: authError } = await supabase.auth.signInWithPassword({
-                email: `${phone}@keneya.ci`,
+                email: `${cleanPhone}@keneya.ci`,
                 password: password,
             })
 

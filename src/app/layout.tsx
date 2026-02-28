@@ -1,13 +1,26 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
+export const viewport: Viewport = {
+    themeColor: '#FF6F00',
+};
+
 export const metadata: Metadata = {
-    title: 'KENEYA - Alerte Santé Abidjan',
-    description: 'Plateforme de gestion et détection des alertes d\'épidémie de la ville d\'Abidjan.',
+    title: 'KENEYA',
+    description: 'Plateforme KENEYA - Gestion et détection des alertes d\'épidémie de la ville d\'Abidjan.',
+    manifest: '/manifest.json',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'KENEYA',
+    },
+    formatDetection: {
+        telephone: false,
+    },
 };
 
 export default function RootLayout({

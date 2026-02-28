@@ -60,7 +60,13 @@ export default function SigMapDashboard() {
         const { data } = await supabase.from('reports').select('*').order('created_at', { ascending: false }).limit(200);
         if (data) {
             const mappedCases = data.map((r: any) => {
-                const [lat, lng] = getJitteredCoords(r.geo_cell);
+                let lat, lng;
+                if (r.metadata && r.metadata.lat && r.metadata.lng) {
+                    lat = parseFloat(r.metadata.lat);
+                    lng = parseFloat(r.metadata.lng);
+                } else {
+                    [lat, lng] = getJitteredCoords(r.geo_cell);
+                }
                 const mappedSyndrome = mapSyndromeToFilter(r.symptoms || []);
                 return {
                     id: r.id,

@@ -13,7 +13,7 @@ export default function SignalerFlow() {
     // Le flow suit le protocole strict demandé
     // Nouveaux états pour le flow conversationnel détaillé
     const [step, setStep] = useState<
-        'intro' | 'greeting_vocal' | 'listening_lang' |
+        'intro' | 'greeting_vocal' | 'listening_contact' | 'listening_lang' | 'lang' |
         'ask_fever' | 'listen_fever' |
         'ask_digestive' | 'listen_digestive' |
         'ask_rash' | 'listen_rash' |
@@ -27,6 +27,7 @@ export default function SignalerFlow() {
     const [detectedSymptoms, setDetectedSymptoms] = useState<string[]>([]);
     const [patientName, setPatientName] = useState('');
     const [patientPhone, setPatientPhone] = useState('');
+    const [hospitalRecommendation, setHospitalRecommendation] = useState('');
 
     const [transcript, setTranscript] = useState('');
     const [isRecording, setIsRecording] = useState(false);
@@ -37,12 +38,70 @@ export default function SignalerFlow() {
     const recognitionRef = useRef<any>(null);
     const transcriptRef = useRef('');
 
+    const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null);
+    const [gpsStatus, setGpsStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
+
     // S'assurer que le TTS s'arrête si l'utilisateur quitte la page
     useEffect(() => {
         return () => {
             window.speechSynthesis.cancel();
         };
     }, []);
+
+    // Sollicitation GPS précoce avec instruction vocale pour analphabètes
+    const requestGPS = async () => {
+        setGpsStatus('requesting');
+        const msg = t('gps_request');
+
+        const utterance = new SpeechSynthesisUtterance(msg);
+        utterance.lang = 'fr-FR';
+        utterance.onend = () => {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                    setGpsStatus('granted');
+                    // Notification vocale de succès
+                    const successMsg = new SpeechSynthesisUtterance("Merci. Je commence à vous écouter.");
+                    successMsg.lang = 'fr-FR';
+                    successMsg.onend = () => setStep('greeting_vocal');
+                    window.speechSynthesis.speak(successMsg);
+                },
+                (err) => {
+                    setGpsStatus('denied');
+                    const failMsg = new SpeechSynthesisUtterance("D'accord. Je commence à vous écouter.");
+                    failMsg.lang = 'fr-FR';
+                    failMsg.onend = () => setStep('greeting_vocal');
+                    window.speechSynthesis.speak(failMsg);
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
+        };
+        window.speechSynthesis.speak(utterance);
+    };
+
+    // ==========================================
+    // LOGIQUE GEOGRAPHIQUE
+    // ==========================================
+    const HOSPITAL_CENTERS = [
+        { id: 1, name: 'CHU de Treichville (Sud)', lat: 5.301, lng: -4.004 },
+        { id: 2, name: 'CHU de Yopougon (Ouest)', lat: 5.340, lng: -4.068 },
+        { id: 3, name: 'CHU de Cocody (Est)', lat: 5.348, lng: -3.988 },
+        { id: 4, name: 'Hôpital Général Abobo (Nord)', lat: 5.421, lng: -4.015 }
+    ];
+
+    const getNearestHospital = (lat: number, lng: number) => {
+        let nearest = HOSPITAL_CENTERS[0];
+        let minDistance = Math.sqrt(Math.pow(lat - nearest.lat, 2) + Math.pow(lng - nearest.lng, 2));
+
+        HOSPITAL_CENTERS.forEach(center => {
+            const dist = Math.sqrt(Math.pow(lat - center.lat, 2) + Math.pow(lng - center.lng, 2));
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearest = center;
+            }
+        });
+        return nearest.name;
+    };
 
     // ==========================================
     // TTS (Text To Speech)
@@ -116,11 +175,11 @@ export default function SignalerFlow() {
                     stopListening(); // Instantané
                 }
             }
-            // Détection de pause pour les questions ouvertes
-            else if (target === 'listen_other' || target === 'listen_details') {
+            // Détection de pause pour les questions ouvertes ou recueil contact
+            else if (target === 'listen_other' || target === 'listen_details' || target === 'listen_contact') {
                 if (liveText.length > 5) {
                     if ((window as any).silenceTimer) clearTimeout((window as any).silenceTimer);
-                    (window as any).silenceTimer = setTimeout(() => stopListening(), 1200); // 1.2s de pause suffit
+                    (window as any).silenceTimer = setTimeout(() => stopListening(), 1800);
                 }
             }
         };
@@ -128,6 +187,25 @@ export default function SignalerFlow() {
         recognition.onend = () => {
             setIsRecording(false);
             const finalTranscript = transcriptRef.current.trim().toLowerCase();
+            if (!finalTranscript) return;
+
+            if (target === 'listen_contact') {
+                const digits = finalTranscript.replace(/\D/g, '');
+                const phoneMatch = digits.match(/\d{10}/);
+
+                if (!phoneMatch) {
+                    const errorMsg = "Pardon, je n'ai pas bien saisi votre numéro. Il doit comporter 10 chiffres. Pouvez-vous me le répéter ?";
+                    speakText(errorMsg, 'listening_contact');
+                    return;
+                }
+
+                const phone = phoneMatch[0];
+                const name = finalTranscript.replace(/\d+/g, '').trim() || 'Anonyme';
+                setPatientName(name);
+                setPatientPhone(phone);
+                setStep('listening_lang'); // Après le contact, on demande la langue
+                return;
+            }
 
             if (target === 'lang') {
                 if (finalTranscript.includes('1') || finalTranscript.includes('français')) setUserLanguage('fr');
@@ -179,49 +257,58 @@ export default function SignalerFlow() {
                         if (data.diagnosis === 'danger' || data.diagnosis === 'warning') {
                             setStep('ask_details');
                         } else {
-                            // Enregistrement direct si pas de danger sans demander les infos
-                            const supabase = createClient();
-                            supabase.from('reports').insert({
-                                symptoms: finalSymptoms,
-                                symptoms_text: finalSymptoms.join(', '),
-                                patient_name: 'Anonyme',
-                                patient_phone: '',
-                                severity: 'vert',
-                                suspected_illness: data.suspectedIllness,
-                                geo_cell: 'Abidjan-Abobo'
-                            }).then();
-                            setStep('result_vocal');
+                            const saveReportWithoutDetails = async () => {
+                                const supabase = createClient();
+                                const currentCoords = coords;
+
+                                if (currentCoords) {
+                                    const nearest = getNearestHospital(currentCoords.lat, currentCoords.lng);
+                                    setHospitalRecommendation(nearest);
+                                }
+
+                                const payload: any = {
+                                    symptoms: finalSymptoms,
+                                    symptoms_text: finalSymptoms.join(', '),
+                                    patient_name: patientName || 'Anonyme',
+                                    patient_phone: patientPhone,
+                                    severity: 'vert',
+                                    suspected_illness: data.suspectedIllness,
+                                    geo_cell: 'Alerte Vocale Citoyenne',
+                                    metadata: currentCoords ? { lat: currentCoords.lat, lng: currentCoords.lng, source: 'vocal' } : { source: 'vocal' }
+                                };
+                                await (supabase.from('reports') as any).insert(payload);
+                                setStep('result_vocal');
+                            };
+                            saveReportWithoutDetails();
                         }
                     });
             }
             else if (target === 'listen_details') {
-                const finalTranscript = transcriptRef.current.trim();
+                const finalTranscript = transcriptRef.current.trim().toLowerCase();
+                const saveFinalReport = async () => {
+                    const supabase = createClient();
+                    const currentCoords = coords;
 
-                // Tentative d'extraction simplifiée (Nom et Téléphone)
-                // Ex: "Jean Dupont 0102030405"
-                const phoneMatch = finalTranscript.match(/(?:(?:\+|00)225)?\s?(\d[\s\d]{7,10})/);
-                const phone = phoneMatch ? phoneMatch[0].replace(/\s/g, '') : '';
-                const name = finalTranscript.replace(phoneMatch ? phoneMatch[0] : '', '').trim();
+                    if (currentCoords) {
+                        const nearest = getNearestHospital(currentCoords.lat, currentCoords.lng);
+                        setHospitalRecommendation(nearest);
+                    }
 
-                setPatientName(name);
-                setPatientPhone(phone);
-
-                // Sauvegarde finale dans Supabase
-                const supabase = createClient();
-                const saveReport = async () => {
-                    await supabase.from('reports').insert({
+                    const payload: any = {
                         symptoms: detectedSymptoms,
-                        symptoms_text: detectedSymptoms.join(', '),
-                        patient_name: name || 'Anonyme',
-                        patient_phone: phone || finalTranscript,
+                        symptoms_text: detectedSymptoms.join(', ') + ' | Détails: ' + finalTranscript,
+                        patient_name: patientName || 'Anonyme',
+                        patient_phone: patientPhone,
                         severity: diagnosis === 'danger' ? 'rouge' : (diagnosis === 'warning' ? 'jaune' : 'vert'),
                         suspected_illness: suspectedIllness,
-                        geo_cell: 'Abidjan-Abobo' // Localisation par défaut pour le test
-                    });
-                };
-                saveReport();
+                        geo_cell: 'Alerte Vocale Détails',
+                        metadata: currentCoords ? { lat: currentCoords.lat, lng: currentCoords.lng, source: 'vocal_details' } : { source: 'vocal_details' }
+                    };
+                    await (supabase.from('reports') as any).insert(payload);
 
-                setStep('result_vocal');
+                    setStep('result_vocal');
+                };
+                saveFinalReport();
             }
         };
 
@@ -239,19 +326,22 @@ export default function SignalerFlow() {
             speakText("Bonjour. Choississez votre langue. Si c'est Français dites 1. Si c'est Dioula dites 2. Si c'est Baoulé dites 3.", 'listening_lang');
         } else if (step === 'listening_lang') {
             startListening('lang');
+        } else if (step === 'lang') {
+            // Après le choix de la langue, on demande le GPS
+            requestGPS();
         }
         else if (step === 'ask_fever') {
-            speakText("Avez-vous une forte fièvre ? Répondez par Oui ou par Non.", 'listen_fever');
+            speakText(t('ask_fever'), 'listen_fever');
         } else if (step === 'listen_fever') {
             startListening('listen_fever');
         }
         else if (step === 'ask_digestive') {
-            speakText("Avez-vous de la diarrhée ou des vomissements ? Répondez par Oui ou par Non.", 'listen_digestive');
+            speakText(t('ask_vomiting'), 'listen_digestive');
         } else if (step === 'listen_digestive') {
             startListening('listen_digestive');
         }
         else if (step === 'ask_rash') {
-            speakText("Avez-vous des boutons ou des plaques sur le corps ? Répondez par Oui ou par Non.", 'listen_rash');
+            speakText(t('ask_rash'), 'listen_rash');
         } else if (step === 'listen_rash') {
             startListening('listen_rash');
         }
@@ -261,16 +351,17 @@ export default function SignalerFlow() {
             startListening('listen_other');
         }
         else if (step === 'ask_details') {
-            speakText("Votre cas semble nécessiter un suivi. Veuillez me dire votre nom et votre numéro de téléphone pour les secours.", 'listen_details');
+            speakText(`D'accord ${patientName}. Votre cas semble nécessiter un suivi. Veuillez nous donner plus de précisions sur ce que vous ressentez.`, 'listen_details');
         } else if (step === 'listen_details') {
             startListening('listen_details');
         } else if (step === 'result_vocal') {
+            const hospitalInfo = hospitalRecommendation ? `Prenez soin de vous ${patientName}. Vous devriez vous rendre au ${hospitalRecommendation} pour une vérification immédiate.` : `Merci ${patientName}.`;
             const msg = diagnosis === 'danger'
-                ? `Attention, suspicion de ${suspectedIllness}. Rendez-vous immédiatement aux urgences. ${instructions.join(' ')}`
-                : `D'après vos symptômes, il s'agit probablement de ${suspectedIllness}. ${instructions.join(' ')}`;
+                ? `Attention ${patientName}, suspicion de ${suspectedIllness}. ${hospitalInfo} Un agent de santé a été alerté.`
+                : `D'après vos symptômes ${patientName}, il s'agit probablement de ${suspectedIllness}. ${instructions.join(' ')}`;
             speakText(msg, 'end');
         }
-    }, [step, diagnosis, suspectedIllness, instructions]);
+    }, [step, diagnosis, suspectedIllness, instructions, hospitalRecommendation, patientName]);
 
 
 
@@ -314,7 +405,7 @@ export default function SignalerFlow() {
                                 // Petite initialisation vocale silencieuse pour "chauffer" le navigateur
                                 const init = new SpeechSynthesisUtterance('');
                                 window.speechSynthesis.speak(init);
-                                setStep('greeting_vocal');
+                                setStep('greeting_vocal'); // On commence par la langue maintenant
                             }}
                             className="px-6 py-4 w-full flex items-center justify-center gap-3 bg-white text-keneya-navy text-lg font-black rounded-2xl shadow-xl hover:bg-slate-100 transition-all active:scale-95"
                         >

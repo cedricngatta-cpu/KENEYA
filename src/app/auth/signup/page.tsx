@@ -8,7 +8,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const ROLES = [
-    { value: 'citizen', label: 'Citoyen', icon: Users, desc: 'Signalement de symptômes', color: 'border-slate-400 text-slate-400' },
     { value: 'community_agent', label: 'Agent Terrain', icon: Users, desc: 'Collecte terrain', color: 'border-blue-500 text-blue-400' },
     { value: 'health_center', label: 'Centre de Santé', icon: HeartPulse, desc: 'Prise en charge', color: 'border-emerald-500 text-emerald-400' },
     { value: 'admin', label: 'Administrateur', icon: Shield, desc: 'Gestion plateforme', color: 'border-purple-500 text-purple-400' },
@@ -18,7 +17,7 @@ export default function SignupPage() {
     const [phone, setPhone] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
-    const [role, setRole] = useState('citizen')
+    const [role, setRole] = useState('community_agent')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)

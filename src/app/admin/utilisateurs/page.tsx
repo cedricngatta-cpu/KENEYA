@@ -44,10 +44,11 @@ export default function AdminUsersPage() {
     // Formulaire création
     const [newPhone, setNewPhone] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [newRole, setNewRole] = useState('citizen');
+    const [newRole, setNewRole] = useState('community_agent');
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState('');
     const [createSuccess, setCreateSuccess] = useState(false);
+    const [createdCredentials, setCreatedCredentials] = useState<{ phone: string, password: string, url: string } | null>(null);
 
     // Édition
     const [editRole, setEditRole] = useState('');
@@ -82,35 +83,57 @@ export default function AdminUsersPage() {
 
         const email = `${newPhone.replace(/\s+/g, '')}@keneya.ci`;
 
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password: newPassword,
-        });
+        try {
+            const response = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phone: newPhone,
+                    password: newPassword,
+                    role: newRole,
+                    language: 'fr'
+                }),
+            });
 
-        if (error) {
-            setCreateError(error.message);
-            setCreating(false);
-            return;
-        }
+            const data = await response.json();
 
-        // Mettre à jour le profil avec le rôle et le téléphone
-        if (data.user) {
-            await (supabase as any).from('users').update({
-                role: newRole,
+            if (!response.ok) {
+                setCreateError(data.error || 'Erreur lors de la création');
+                setCreating(false);
+                return;
+            }
+
+            const getDashboardUrl = (role: string) => {
+                const base = typeof window !== 'undefined' ? window.location.origin : 'https://keneya.ci';
+                switch (role) {
+                    case 'admin': return `${base}/admin`;
+                    case 'health_center': return `${base}/dashboard/center`;
+                    case 'community_agent': return `${base}/dashboard/agent`;
+                    case 'district': return `${base}/dashboard/district`;
+                    case 'city_hall': return `${base}/dashboard/city_hall`;
+                    default: return `${base}/pro/login`;
+                }
+            };
+
+            setCreatedCredentials({
                 phone: newPhone,
-            }).eq('id', data.user.id);
-        }
+                password: newPassword,
+                url: getDashboardUrl(newRole)
+            });
 
-        setCreating(false);
-        setCreateSuccess(true);
-        setNewPhone('');
-        setNewPassword('');
-        setNewRole('citizen');
-        setTimeout(() => {
-            setCreateSuccess(false);
-            setShowCreateModal(false);
+            setCreating(false);
+            setCreateSuccess(true);
+            setNewPhone('');
+            setNewPassword('');
+            setNewRole('community_agent');
             fetchUsers();
-        }, 1500);
+
+        } catch (err: any) {
+            setCreateError(err.message || 'Erreur de connexion serveur');
+            setCreating(false);
+        }
     }
 
     // === MODIFIER UN UTILISATEUR ===
@@ -335,10 +358,39 @@ export default function AdminUsersPage() {
                             </button>
                         </div>
 
-                        {createSuccess ? (
-                            <div className="text-center py-8">
-                                <CheckCircle size={48} className="mx-auto text-keneya-green mb-4" />
-                                <p className="text-lg font-black text-slate-900">Utilisateur créé !</p>
+                        {createSuccess && createdCredentials ? (
+                            <div className="text-center py-4 space-y-6">
+                                <div>
+                                    <CheckCircle size={48} className="mx-auto text-keneya-green mb-4" />
+                                    <p className="text-lg font-black text-slate-900">Utilisateur créé avec succès !</p>
+                                    <p className="text-sm text-slate-500 font-medium">Copiez ces accès et transmettez-les à l'agent.</p>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-left space-y-4">
+                                    <div>
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Lien de connexion</div>
+                                        <div className="text-sm font-bold text-keneya-navy break-all">{createdCredentials.url}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Numéro de téléphone (ID)</div>
+                                        <div className="text-lg font-black text-slate-900">{createdCredentials.phone}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mot de passe temporaire</div>
+                                        <div className="text-lg font-black tracking-widest text-slate-900">{createdCredentials.password}</div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => {
+                                        setCreateSuccess(false);
+                                        setCreatedCredentials(null);
+                                        setShowCreateModal(false);
+                                    }}
+                                    className="w-full py-4 bg-slate-100 text-slate-600 font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all"
+                                >
+                                    Fermer
+                                </button>
                             </div>
                         ) : (
                             <>
@@ -366,7 +418,7 @@ export default function AdminUsersPage() {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-2">Rôle</label>
                                         <div className="grid grid-cols-2 gap-2">
-                                            {ROLES.map((r) => (
+                                            {ROLES.filter(r => r.value !== 'citizen').map((r) => (
                                                 <button
                                                     key={r.value}
                                                     onClick={() => setNewRole(r.value)}

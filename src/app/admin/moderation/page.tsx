@@ -30,6 +30,7 @@ export default function AdminModerationPage() {
     const [activeClusters, setActiveClusters] = useState<ClusterRow[]>([]);
     const [recentReports, setRecentReports] = useState<ReportRow[]>([]);
     const [loading, setLoading] = useState(true);
+    const [scanning, setScanning] = useState(false);
     const [resolvedCount, setResolvedCount] = useState(0);
 
     useEffect(() => {
@@ -57,6 +58,21 @@ export default function AdminModerationPage() {
     async function handleRejectCluster(clusterId: string) {
         await (supabase as any).from('clusters').update({ status: 'rejected' }).eq('id', clusterId);
         fetchData();
+    }
+
+    async function handleScanIA() {
+        setScanning(true);
+        try {
+            const res = await fetch('/api/admin/clusters/detect', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                await fetchData();
+            }
+        } catch (err) {
+            console.error('Scan Error:', err);
+        } finally {
+            setScanning(false);
+        }
     }
 
     const formatTime = (iso: string) => {
@@ -94,10 +110,22 @@ export default function AdminModerationPage() {
                     </div>
                 </div>
 
-                <div className="bg-slate-900 p-8 rounded-[3rem] text-white flex flex-col justify-center items-center text-center border border-white/5 relative overflow-hidden">
+                <div className="bg-slate-900 p-8 rounded-[3rem] text-white flex flex-col justify-center items-center text-center border border-white/5 relative overflow-hidden group">
                     <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-keneya-red/20 to-transparent"></div>
-                    <div className="text-5xl font-black text-white mb-2 relative z-10">{activeClusters.length}</div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-keneya-red-light relative z-10 px-4 py-1 bg-keneya-red/10 rounded-full">En attente</div>
+                    <div className="relative z-10 flex flex-col items-center gap-2">
+                        <div className="text-5xl font-black text-white">{activeClusters.length}</div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-keneya-red-light px-4 py-1 bg-keneya-red/10 rounded-full">En attente</div>
+                    </div>
+
+                    <button
+                        onClick={handleScanIA}
+                        disabled={scanning}
+                        className="mt-6 w-full py-4 bg-keneya-red hover:bg-keneya-red/90 disabled:bg-slate-700 text-white rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-keneya-red/20"
+                    >
+                        {scanning ? <Loader2 size={16} className="animate-spin" /> : <BrainCircuit size={16} />}
+                        {scanning ? 'Analyse...' : 'Lancer Scan IA'}
+                    </button>
+                    <p className="mt-4 text-[8px] text-slate-500 font-bold uppercase tracking-widest">Dernière analyse : Aujourd'hui</p>
                 </div>
             </div>
 

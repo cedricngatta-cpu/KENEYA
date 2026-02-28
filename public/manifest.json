@@ -1,22 +1,25 @@
 {
-  "name": "Alerte Santé Abidjan",
-  "short_name": "AlerteSanté",
-  "description": "Plateforme de gestion des alertes d'épidémie pour Abidjan",
-  "start_url": "/",
+  "name": "KENEYA",
+  "short_name": "KENEYA",
+  "description": "Plateforme KENEYA - Gestion et détection des alertes d'épidémie de la ville d'Abidjan.",
+  "theme_color": "#FF6F00",
+  "background_color": "#f8fafc",
   "display": "standalone",
-  "background_color": "#FAFBFC",
-  "theme_color": "#1B6B4A",
   "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
