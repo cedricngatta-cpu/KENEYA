@@ -64,12 +64,20 @@ export async function middleware(request: NextRequest) {
             .single();
 
         const url = request.nextUrl.clone();
-        if (userData?.role === 'admin') url.pathname = '/admin';
-        else if (userData?.role === 'health_center') url.pathname = '/dashboard/center';
-        else if (userData?.role === 'community_agent') url.pathname = '/dashboard/agent';
-        else url.pathname = '/';
+        if (userData?.role === 'admin') {
+            url.pathname = '/admin';
+            return NextResponse.redirect(url);
+        } else if (userData?.role === 'health_center') {
+            url.pathname = '/dashboard/center';
+            return NextResponse.redirect(url);
+        } else if (userData?.role === 'community_agent') {
+            url.pathname = '/dashboard/agent';
+            return NextResponse.redirect(url);
+        }
 
-        return NextResponse.redirect(url);
+        // Si le rôle n'est pas pro, on laisse l'utilisateur accéder à la page demandée (login/pro)
+        // ou on laisse le flux d'authentification se gérer lui-même.
+        return supabaseResponse;
     }
 
     return supabaseResponse;

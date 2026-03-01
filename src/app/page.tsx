@@ -2,11 +2,31 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight, Mic, Lock, MapPin, Thermometer, Wind, Droplets, Eye, Brain, Syringe, Activity, Fingerprint, Shield, MessageSquare } from 'lucide-react';
+import { ChevronRight, Mic, Lock, MapPin, Thermometer, Wind, Droplets, Eye, Brain, Syringe, Activity, Fingerprint, Shield, MessageSquare, LayoutDashboard } from 'lucide-react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
     const { t } = useLanguage();
+    const [user, setUser] = useState<any>(null);
+    const [dashboardUrl, setDashboardUrl] = useState('/pro/login');
+
+    useEffect(() => {
+        const checkUser = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setUser(user);
+                const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+                if (userData?.role === 'admin') setDashboardUrl('/admin');
+                else if (userData?.role === 'health_center') setDashboardUrl('/dashboard/center');
+                else if (userData?.role === 'community_agent') setDashboardUrl('/dashboard/agent');
+                else setDashboardUrl('/dashboard');
+            }
+        };
+        checkUser();
+    }, []);
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
@@ -29,11 +49,20 @@ export default function Home() {
 
                     <div className="flex items-center gap-4">
                         <Link
-                            href="/pro/login"
+                            href={dashboardUrl}
                             className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs md:text-sm font-black uppercase tracking-widest rounded-full transition-all shadow-lg active:scale-95"
                         >
-                            <Lock size={16} className="text-keneya-green-light" />
-                            <span>Espace PRO</span>
+                            {user ? (
+                                <>
+                                    <LayoutDashboard size={16} className="text-keneya-green-light" />
+                                    <span>Mon Dashboard</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Lock size={16} className="text-keneya-green-light" />
+                                    <span>Espace PRO</span>
+                                </>
+                            )}
                         </Link>
                     </div>
                 </div>
