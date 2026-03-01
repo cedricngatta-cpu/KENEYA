@@ -363,7 +363,7 @@ export default function SignalerFlow() {
             requestGPS();
         }
         else if (step === 'ask_contact') {
-            speakText(t('ask_contact_info'), 'listening_contact');
+            speakText(`${t('ask_contact_info')} ${t('press_to_finish')}`, 'listening_contact');
         } else if (step === 'listening_contact') {
             startListening('listen_contact');
         }
@@ -394,12 +394,12 @@ export default function SignalerFlow() {
             startListening('listen_rash');
         }
         else if (step === 'ask_other') {
-            speakText(`${patientName}, avez-vous d'autres symptômes particuliers ? Si oui, dites lesquels, sinon dites Non.`, 'listen_other');
+            speakText(`${patientName}, avez-vous d'autres symptômes particuliers ? Si oui, dites lesquels, sinon dites Non. ${t('press_to_finish')}`, 'listen_other');
         } else if (step === 'listen_other') {
             startListening('listen_other');
         }
         else if (step === 'ask_details') {
-            speakText(`D'accord ${patientName}. Votre cas semble nécessiter un suivi. Veuillez nous donner plus de précisions sur ce que vous ressentez.`, 'listen_details');
+            speakText(`D'accord ${patientName}. Votre cas semble nécessiter un suivi. Veuillez nous donner plus de précisions sur ce que vous ressentez. ${t('press_to_finish')}`, 'listen_details');
         } else if (step === 'listen_details') {
             startListening('listen_details');
         } else if (step === 'result_vocal') {

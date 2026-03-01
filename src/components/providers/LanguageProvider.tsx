@@ -20,6 +20,7 @@ const defaultTranslations: Record<string, string> = {
     'ask_contact_info': 'Veuillez nous dire votre nom et votre numéro de téléphone.',
     'ask_vitals': 'Nous allons maintenant relever vos constantes biométriques. Veuillez rester immobile.',
     'vitals_measuring': 'Mesure des constantes en cours... Veuillez patienter.',
+    'press_to_finish': 'Une fois terminé, appuyez sur le bouton rouge au milieu de l’écran pour valider.',
 };
 
 // Traductions hybrides (Contexte local, Termes Médicaux en FR pour précision)
@@ -33,6 +34,7 @@ const dioulaTranslations: Record<string, string> = {
     'ask_contact_info': 'I tɔgɔ n’i ka nimɛrɔ fɔ an ye.',
     'ask_vitals': 'An bɛna a daminɛ ni biométrie constantes ye. I tlo de i sɔrɔ.',
     'vitals_measuring': 'Constantes jaatélila... I tlo de.',
+    'press_to_finish': 'I banna fɔli la, i bɛ bouton rouge gasi ka a lɔ.',
 };
 
 const baouleTranslations: Record<string, string> = {
@@ -44,6 +46,7 @@ const baouleTranslations: Record<string, string> = {
     'ask_contact_info': 'Amun dunman ni niméro ye o yɛ?',
     'ask_vitals': 'An bɛna biométrie kplin. I kpli ni kpli.',
     'vitals_measuring': 'Biométrie kplin kplin...',
+    'press_to_finish': 'I banna, kpli bouton kouman o ani lɔ.',
 };
 
 const beteTranslations: Record<string, string> = {
@@ -53,6 +56,7 @@ const beteTranslations: Record<string, string> = {
     'ask_contact_info': 'N’on fɔ miman ni niméro.',
     'ask_vitals': 'N’on fɔ biométrie constantes.',
     'vitals_measuring': 'Biométrie constantes kplin...',
+    'press_to_finish': 'I banna, miɛ bouton kouman o n’on.',
 };
 
 const LanguageContext = createContext<LanguageContextType>({
