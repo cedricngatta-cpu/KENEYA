@@ -18,6 +18,8 @@ const defaultTranslations: Record<string, string> = {
     'ask_vomiting': 'Souffrez-vous de vomissements ou de diarrhées intenses ?',
     'ask_rash': 'Avez-vous des boutons ou des plaques rouges sur la peau ?',
     'ask_contact_info': 'Veuillez nous dire votre nom et votre numéro de téléphone.',
+    'ask_vitals': 'Nous allons maintenant relever vos constantes biométriques. Veuillez rester immobile.',
+    'vitals_measuring': 'Mesure des constantes en cours... Veuillez patienter.',
 };
 
 // Traductions hybrides (Contexte local, Termes Médicaux en FR pour précision)
@@ -25,11 +27,12 @@ const dioulaTranslations: Record<string, string> = {
     'greeting': 'I ni tché. É bɛ mun kɛ ?',
     'select_lang': 'I ka kan sugandi',
     'gps_request': 'I dɛmɛnna kadi, n bɛ a fɛ ka i sɔrɔ yɔrɔ lɔn. Fen dogonin dɔ bɛna n’i ka gasi la: lɔn k’a lɔ k’a fɔ ko **AUTORISER**.',
-    'ask_vitals': 'I i tché. An bɛna a daminɛ ni biométrie constantes ye.',
     'ask_fever': 'I bɛ a sɔrɔ ko fari tɛ gbegbe wa? **FIÈVRE** b’i la?',
     'ask_vomiting': 'I bɛ **VOMIR** wa? N’o tɛ i bɛ **DIARRHÉE** kɛ?',
     'ask_rash': 'Boutons b’i fari la wa? **ÉRUPTION CUTANÉE** b’i la?',
     'ask_contact_info': 'I tɔgɔ n’i ka nimɛrɔ fɔ an ye.',
+    'ask_vitals': 'An bɛna a daminɛ ni biométrie constantes ye. I tlo de i sɔrɔ.',
+    'vitals_measuring': 'Constantes jaatélila... I tlo de.',
 };
 
 const baouleTranslations: Record<string, string> = {
@@ -39,6 +42,8 @@ const baouleTranslations: Record<string, string> = {
     'ask_fever': 'O wounou hien wa? **FIÈVRE** o i su?',
     'ask_vomiting': 'O **VOMIR** wa? N’o tɛ o kɛ **DIARRHÉE**?',
     'ask_contact_info': 'Amun dunman ni niméro ye o yɛ?',
+    'ask_vitals': 'An bɛna biométrie kplin. I kpli ni kpli.',
+    'vitals_measuring': 'Biométrie kplin kplin...',
 };
 
 const beteTranslations: Record<string, string> = {
@@ -46,6 +51,8 @@ const beteTranslations: Record<string, string> = {
     'gps_request': 'N n’on gni o djédjé. Gnibi kun o sran. Flouwa o sran nan: miɛ i su ko **AUTORISER**.',
     'ask_fever': 'O wounou hié wa? **FIÈVRE** o i su?',
     'ask_contact_info': 'N’on fɔ miman ni niméro.',
+    'ask_vitals': 'N’on fɔ biométrie constantes.',
+    'vitals_measuring': 'Biométrie constantes kplin...',
 };
 
 const LanguageContext = createContext<LanguageContextType>({

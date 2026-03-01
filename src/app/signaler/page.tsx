@@ -14,6 +14,7 @@ export default function SignalerFlow() {
     // Nouveaux états pour le flow conversationnel détaillé
     const [step, setStep] = useState<
         'intro' | 'greeting_vocal' | 'listening_contact' | 'listening_lang' | 'lang' | 'ask_contact' |
+        'ask_vitals' | 'measuring_vitals' |
         'ask_fever' | 'listen_fever' |
         'ask_digestive' | 'listen_digestive' |
         'ask_rash' | 'listen_rash' |
@@ -219,7 +220,7 @@ export default function SignalerFlow() {
                 const fullName = `Monsieur ou Madame ${firstName}`;
                 setPatientName(fullName);
                 setPatientPhone(phone);
-                setStep('ask_fever'); // Directement vers les symptômes après le contact
+                setStep('ask_vitals'); // Vers la biométrie après le contact
                 return;
             }
 
@@ -361,6 +362,15 @@ export default function SignalerFlow() {
         } else if (step === 'listening_contact') {
             startListening('listen_contact');
         }
+        else if (step === 'ask_vitals') {
+            speakText(`${patientName}, ${t('ask_vitals')}`, 'measuring_vitals');
+        } else if (step === 'measuring_vitals') {
+            // Simulation d'une mesure biométrique de 4 secondes
+            const timer = setTimeout(() => {
+                setStep('ask_fever');
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
         else if (step === 'ask_fever') {
             // Sécurité : On s'assure que si on a répondu 1, la question suivante est bien dite en français.
             const textToSpeak = `${patientName}, ${t('ask_fever') || "Avez-vous de la fièvre ou des maux de tête depuis moins de 48 heures ?"}`;
@@ -449,7 +459,7 @@ export default function SignalerFlow() {
                 )}
 
                 {/* ETAPES VOCALES (IA PARLE) */}
-                {(step === 'greeting_vocal' || step === 'ask_contact' || step.startsWith('ask_') || step === 'result_vocal') && (
+                {(step === 'greeting_vocal' || step === 'ask_contact' || step === 'ask_vitals' || step.startsWith('ask_') || step === 'result_vocal') && (
                     <div className="flex-1 flex flex-col items-center justify-center w-full animate-in zoom-in-95 duration-700">
                         <div className={`w-32 h-32 rounded-full flex items-center justify-center mb-6 relative animate-bounce
                             ${diagnosis === 'danger' && step === 'result_vocal' ? 'bg-keneya-red shadow-[0_0_40px_rgba(201,42,42,0.5)]' : 'bg-keneya-green shadow-[0_0_40px_rgba(70,131,62,0.5)]'}
@@ -467,14 +477,18 @@ export default function SignalerFlow() {
                 )}
 
 
-                {/* PROCESSING IA */}
-                {step === 'processing' && (
+                {/* PROCESSING IA OU BIOMETRIE */}
+                {(step === 'processing' || step === 'measuring_vitals') && (
                     <div className="flex-1 flex flex-col items-center justify-center w-full animate-in zoom-in-95 duration-500">
-                        <div className="w-24 h-24 border-8 border-slate-700 border-t-keneya-green rounded-full animate-spin mb-8"></div>
+                        <div className={`w-32 h-32 border-8 border-slate-700 border-t-keneya-green rounded-full animate-spin mb-8 flex items-center justify-center`}>
+                            {step === 'measuring_vitals' && <Volume2 size={32} className="text-keneya-green animate-pulse" />}
+                        </div>
                         <h1 className="text-2xl font-black text-white text-center leading-tight mb-2">
-                            Analyse <span className="text-keneya-green">Médicale...</span>
+                            {step === 'processing' ? <>Analyse <span className="text-keneya-green">Médicale...</span></> : <>Mesure <span className="text-keneya-green">Biométrique...</span></>}
                         </h1>
-                        <p className="text-slate-500 font-medium uppercase tracking-widest text-xs">Moteur Claude 3.5 Sonnet actif</p>
+                        <p className="text-slate-500 font-medium uppercase tracking-widest text-xs">
+                            {step === 'processing' ? "Moteur Claude 3.5 Sonnet actif" : t('vitals_measuring')}
+                        </p>
                     </div>
                 )}
 
