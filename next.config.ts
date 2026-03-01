@@ -17,6 +17,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/login',
+        destination: '/pro/login',
+        permanent: true,
+      },
+      {
+        source: '/auth/login',
+        destination: '/pro/login',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);

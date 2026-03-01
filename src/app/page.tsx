@@ -28,6 +28,13 @@ export default function Home() {
                     </Link>
 
                     <div className="flex items-center gap-4">
+                        <Link
+                            href="/pro/login"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs md:text-sm font-black uppercase tracking-widest rounded-full transition-all shadow-lg active:scale-95"
+                        >
+                            <Lock size={16} className="text-keneya-green-light" />
+                            <span>Espace PRO</span>
+                        </Link>
                     </div>
                 </div>
             </header>
