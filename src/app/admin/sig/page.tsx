@@ -51,6 +51,7 @@ const ABIDJAN_ZONES = [
     { name: 'Bingerville', row: 0, col: 3 },
     { name: 'Anyama', row: 3, col: 0 },
     { name: 'Grand-Bassam', row: 3, col: 3 },
+    { name: 'ESATIC', row: 3, col: 1 },
 ];
 
 type TimeFilter = '24h' | '7j' | '30j' | 'tout';

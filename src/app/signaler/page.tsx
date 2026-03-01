@@ -110,6 +110,24 @@ export default function SignalerFlow() {
         return nearest.name;
     };
 
+    const getGeoCellFromCoords = (lat: number, lng: number) => {
+        // Coordonnées ESATIC Treichville (approx)
+        const esaticLat = 5.3023;
+        const esaticLng = -4.0042;
+        const distToEsatic = Math.sqrt(Math.pow(lat - esaticLat, 2) + Math.pow(lng - esaticLng, 2));
+
+        // Si on est à moins de ~500m de l'ESATIC
+        if (distToEsatic < 0.005) return 'ESATIC';
+
+        // Fallback Treichville
+        const treichvilleLat = 5.3015;
+        const treichvilleLng = -4.0083;
+        const distToTreich = Math.sqrt(Math.pow(lat - treichvilleLat, 2) + Math.pow(lng - treichvilleLng, 2));
+        if (distToTreich < 0.02) return 'Treichville';
+
+        return 'Abidjan (Hors zone)';
+    };
+
     // ==========================================
     // TTS (Text To Speech)
     // ==========================================
@@ -305,7 +323,7 @@ export default function SignalerFlow() {
                                     patient_phone: patientPhone,
                                     severity: 'vert',
                                     suspected_illness: data.suspectedIllness,
-                                    geo_cell: 'Alerte Vocale Citoyenne',
+                                    geo_cell: currentCoords ? getGeoCellFromCoords(currentCoords.lat, currentCoords.lng) : 'ESATIC Treichville (Simulé)',
                                     metadata: currentCoords ? { lat: currentCoords.lat, lng: currentCoords.lng, source: 'vocal' } : { source: 'vocal' }
                                 };
                                 await (supabase.from('reports') as any).insert(payload);
@@ -333,7 +351,7 @@ export default function SignalerFlow() {
                         patient_phone: patientPhone,
                         severity: diagnosis === 'danger' ? 'rouge' : (diagnosis === 'warning' ? 'jaune' : 'vert'),
                         suspected_illness: suspectedIllness,
-                        geo_cell: 'Alerte Vocale Détails',
+                        geo_cell: currentCoords ? getGeoCellFromCoords(currentCoords.lat, currentCoords.lng) : 'ESATIC Treichville (Simulé)',
                         metadata: currentCoords ? { lat: currentCoords.lat, lng: currentCoords.lng, source: 'vocal_details' } : { source: 'vocal_details' }
                     };
                     await (supabase.from('reports') as any).insert(payload);
