@@ -87,7 +87,13 @@ export default function SignalerFlow() {
         { id: 1, name: 'CHU de Treichville (Sud)', lat: 5.301, lng: -4.004 },
         { id: 2, name: 'CHU de Yopougon (Ouest)', lat: 5.340, lng: -4.068 },
         { id: 3, name: 'CHU de Cocody (Est)', lat: 5.348, lng: -3.988 },
-        { id: 4, name: 'Hôpital Général Abobo (Nord)', lat: 5.421, lng: -4.015 }
+        { id: 4, name: 'Hôpital Général d\'Abobo (Nord)', lat: 5.421, lng: -4.015 },
+        { id: 5, name: 'Hôpital Général de Marcory', lat: 5.302, lng: -3.992 },
+        { id: 6, name: 'Hôpital Général de Port-Bouët', lat: 5.253, lng: -3.945 },
+        { id: 7, name: 'Hôpital Général de Koumassi', lat: 5.292, lng: -3.963 },
+        { id: 8, name: 'Hôpital Général d\'Adjamé', lat: 5.356, lng: -4.021 },
+        { id: 9, name: 'CHU d\'Angré', lat: 5.398, lng: -3.962 },
+        { id: 10, name: 'Hôpital Militaire d\'Abidjan (HMA)', lat: 5.378, lng: -4.032 }
     ];
 
     const getNearestHospital = (lat: number, lng: number) => {
@@ -213,12 +219,11 @@ export default function SignalerFlow() {
 
                 const phone = phoneMatch[0];
                 // Extraction du premier nom/prénom
-                let rawName = finalTranscript.replace(/\d+/g, '').trim() || 'Détenteur';
-                let firstName = rawName.split(' ')[0];
-                firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                let rawName = finalTranscript.replace(/\d+/g, '').trim() || 'Citoyen';
+                const firstName = rawName.split(' ')[0];
+                const cleanName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
 
-                const fullName = `Monsieur ou Madame ${firstName}`;
-                setPatientName(fullName);
+                setPatientName(cleanName);
                 setPatientPhone(phone);
                 setStep('ask_vitals'); // Vers la biométrie après le contact
                 return;
@@ -398,10 +403,13 @@ export default function SignalerFlow() {
         } else if (step === 'listen_details') {
             startListening('listen_details');
         } else if (step === 'result_vocal') {
-            const hospitalInfo = hospitalRecommendation ? `Prenez soin de vous ${patientName}. Vous devriez vous rendre au ${hospitalRecommendation} pour une vérification immédiate.` : `Merci ${patientName}.`;
+            const hospitalInfo = hospitalRecommendation
+                ? `Veuillez vous rendre immédiatement au centre de santé le plus proche : le ${hospitalRecommendation}. C'est très important pour votre sécurité.`
+                : `Veuillez vous rendre dans le centre de santé le plus proche de chez vous sans tarder.`;
+
             const msg = diagnosis === 'danger'
-                ? `Attention ${patientName}, suspicion de ${suspectedIllness}. ${hospitalInfo} Un agent de santé a été alerté.`
-                : `D'après vos symptômes ${patientName}, il s'agit probablement de ${suspectedIllness}. ${instructions.join(' ')}`;
+                ? `Attention ${patientName}, une suspicion de ${suspectedIllness} a été détectée. ${hospitalInfo} Un agent de santé a été alerté.`
+                : `${patientName}, d'après vos symptômes, il s'agit probablement de ${suspectedIllness}. ${hospitalInfo} ${instructions.join(' ')}`;
             speakText(msg, 'end');
         }
     }, [step, diagnosis, suspectedIllness, instructions, hospitalRecommendation, patientName, t]);
