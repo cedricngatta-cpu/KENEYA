@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import {
     Bell, ShieldAlert, CheckCircle, XCircle, MapPin,
-    Users, BrainCircuit, Clock, ShieldCheck, Loader2
+    Users, BrainCircuit, Clock, ShieldCheck, Loader2, X
 } from 'lucide-react';
 
 interface ClusterRow {
@@ -32,6 +33,10 @@ export default function AdminModerationPage() {
     const [loading, setLoading] = useState(true);
     const [scanning, setScanning] = useState(false);
     const [resolvedCount, setResolvedCount] = useState(0);
+    const [selectedCluster, setSelectedCluster] = useState<ClusterRow | null>(null);
+    const [clusterReports, setClusterReports] = useState<any[]>([]);
+    const [loadingReports, setLoadingReports] = useState(false);
+    const [scanResult, setScanResult] = useState<{ new: number, analyzed: number } | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -66,12 +71,30 @@ export default function AdminModerationPage() {
             const res = await fetch('/api/admin/clusters/detect', { method: 'POST' });
             const data = await res.json();
             if (data.success) {
+                setScanResult({ new: data.clustersCreated, analyzed: data.analyzedCount });
                 await fetchData();
+                setTimeout(() => setScanResult(null), 5000);
             }
         } catch (err) {
             console.error('Scan Error:', err);
         } finally {
             setScanning(false);
+        }
+    }
+
+    async function fetchClusterDetails(cluster: ClusterRow) {
+        setSelectedCluster(cluster);
+        setLoadingReports(true);
+        try {
+            const res = await fetch(`/api/admin/clusters/reports?zone=${encodeURIComponent(cluster.geo_cell)}&syndrome=${encodeURIComponent(cluster.syndrome)}`);
+            const data = await res.json();
+            if (data.success) {
+                setClusterReports(data.reports);
+            }
+        } catch (err) {
+            console.error('Error fetching details:', err);
+        } finally {
+            setLoadingReports(false);
         }
     }
 
@@ -107,6 +130,12 @@ export default function AdminModerationPage() {
                         <p className="text-slate-500 font-medium italic">
                             Validation humaine des clusters détectés par l'IA. {activeClusters.length} cluster(s) actif(s) en attente de votre décision.
                         </p>
+                        {scanResult && (
+                            <div className="mt-4 p-4 bg-keneya-green/10 text-keneya-green rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                <CheckCircle size={20} />
+                                <span className="text-sm font-black uppercase tracking-tight">Scan terminé : {scanResult.new} nouveaux clusters sur {scanResult.analyzed} rapports.</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -163,16 +192,30 @@ export default function AdminModerationPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="p-8 xl:w-1/3 bg-slate-50/50 flex flex-col justify-center gap-4">
+                                    <div className="p-8 xl:w-1/3 bg-slate-50/50 flex flex-col justify-center gap-3">
+                                        <button
+                                            onClick={() => fetchClusterDetails(cluster)}
+                                            className="w-full py-4 bg-white border border-slate-200 text-slate-700 font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 mb-2"
+                                        >
+                                            <BrainCircuit size={18} className="text-purple-500" /> Voir Détails
+                                        </button>
                                         <button
                                             onClick={() => handleResolveCluster(cluster.id)}
                                             className="w-full py-5 bg-keneya-green text-white font-black text-sm uppercase tracking-[0.15em] rounded-[1.5rem] shadow-xl shadow-keneya-green/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
                                         >
-                                            <ShieldCheck size={20} /> Marquer Résolu
+                                            <ShieldCheck size={20} /> Valider l'Alerte
                                         </button>
-                                        <button onClick={() => handleRejectCluster(cluster.id)} className="py-4 bg-white border border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
-                                            <XCircle size={16} /> Rejeter
-                                        </button>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button onClick={() => handleRejectCluster(cluster.id)} className="py-3 bg-white border border-slate-200 text-slate-400 font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-1.5">
+                                                <XCircle size={14} /> Rejeter
+                                            </button>
+                                            <Link
+                                                href={`/dashboard/alerts?zone=${encodeURIComponent(cluster.geo_cell)}&syndrome=${encodeURIComponent(cluster.syndrome)}`}
+                                                className="py-3 bg-keneya-red/10 border border-keneya-red/20 text-keneya-red font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-keneya-red/20 transition-colors flex items-center justify-center gap-1.5"
+                                            >
+                                                <Bell size={14} /> Alerter
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -221,6 +264,94 @@ export default function AdminModerationPage() {
                     )}
                 </div>
             </div>
+            {/* MODAL D'ANALYSE DÉTAILLÉE */}
+            {selectedCluster && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setSelectedCluster(null)}></div>
+                    <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-[3rem] shadow-2xl relative z-10 overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+                        {/* Modal Header */}
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                                <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                                    <BrainCircuit className="text-purple-600" /> Analyse de Cluster
+                                </h3>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <span className="px-3 py-1 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">{selectedCluster.geo_cell}</span>
+                                    <span className="px-3 py-1 bg-keneya-red/10 text-keneya-red rounded-xl text-[10px] font-black uppercase tracking-widest">{selectedCluster.syndrome}</span>
+                                </div>
+                            </div>
+                            <button onClick={() => setSelectedCluster(null)} className="p-3 hover:bg-slate-200 rounded-2xl transition-colors text-slate-400">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Signalements Sources ({clusterReports.length})</h4>
+                                    <div className="text-[10px] font-bold text-slate-400 italic">Fenêtre : Dernières 72 heures</div>
+                                </div>
+
+                                {loadingReports ? (
+                                    <div className="py-20 flex flex-col items-center justify-center gap-4">
+                                        <Loader2 className="w-10 h-10 text-keneya-green animate-spin" />
+                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest animate-pulse">Extraction des rapports...</p>
+                                    </div>
+                                ) : clusterReports.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {clusterReports.map((report) => (
+                                            <div key={report.id} className="p-5 bg-slate-50 border border-slate-100 rounded-[1.5rem] hover:border-keneya-green/30 transition-all group">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-black text-slate-900">{report.patient_name || 'Anonyme'}</span>
+                                                        <span className="text-[10px] font-bold text-blue-600 tracking-tighter">{report.patient_phone || 'Pas de numéro'}</span>
+                                                    </div>
+                                                    <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase ${report.severity === 'rouge' ? 'bg-red-100 text-red-600' : report.severity === 'jaune' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
+                                                        {report.severity}
+                                                    </span>
+                                                </div>
+                                                <div className="text-[10px] text-slate-500 font-medium mb-3 line-clamp-2 italic leading-relaxed">
+                                                    "{report.suspected_illness || report.symptoms?.join(', ') || 'Signalement vocal'}"
+                                                </div>
+                                                <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{formatTime(report.created_at)}</span>
+                                                    <div className="p-1.5 bg-white rounded-lg text-slate-300 border border-slate-100 group-hover:text-keneya-green transition-colors">
+                                                        <CheckCircle size={14} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="py-20 text-center bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                                        <XCircle className="mx-auto text-slate-300 mb-2" size={32} />
+                                        <p className="text-slate-400 text-sm font-bold tracking-tight">Aucun rapport spécifique trouvé</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center sm:text-left">
+                                Ces données sont strictement confidentielles <br /> Réservé à l'usage de la Mairie d'Abidjan
+                            </p>
+                            <div className="flex gap-3 w-full sm:w-auto">
+                                <button onClick={() => setSelectedCluster(null)} className="flex-1 sm:flex-none px-8 py-4 bg-white border border-slate-200 text-slate-500 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-colors">
+                                    Fermer
+                                </button>
+                                <Link
+                                    href={`/dashboard/alerts?zone=${encodeURIComponent(selectedCluster.geo_cell)}&syndrome=${encodeURIComponent(selectedCluster.syndrome)}`}
+                                    className="flex-1 sm:flex-none px-8 py-4 bg-keneya-red text-white font-black text-xs uppercase tracking-[0.15em] rounded-2xl shadow-xl shadow-keneya-red/20 hover:scale-[1.05] transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Bell size={16} /> Lancer l'Alerte
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

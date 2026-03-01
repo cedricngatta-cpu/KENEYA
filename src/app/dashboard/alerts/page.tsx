@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
     BellRing, Smartphone, MessageCircle, Mic, Send, AlertTriangle,
@@ -42,12 +43,17 @@ interface BroadcastRow {
     created_at: string;
 }
 
-export default function BroadcastAlertsDashboard() {
+function BroadcastAlertsContent() {
     const supabase = createClient();
+    const searchParams = useSearchParams();
+
+    // Récupération des paramètres pour pré-remplir
+    const initialZone = searchParams.get('zone') || 'all';
+    const initialSyndrome = searchParams.get('syndrome') || 'all';
 
     const [selectedChannel, setSelectedChannel] = useState<'sms' | 'telegram' | 'voice'>('telegram');
-    const [targetZone, setTargetZone] = useState('all');
-    const [targetEpidemy, setTargetEpidemy] = useState('all');
+    const [targetZone, setTargetZone] = useState(initialZone);
+    const [targetEpidemy, setTargetEpidemy] = useState(initialSyndrome);
     const [zoneOpen, setZoneOpen] = useState(false);
     const [epidemyOpen, setEpidemyOpen] = useState(false);
     const [zoneSearch, setZoneSearch] = useState('');
@@ -543,5 +549,17 @@ export default function BroadcastAlertsDashboard() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function BroadcastAlertsDashboard() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-[60vh] items-center justify-center">
+                <Loader2 className="w-10 h-10 text-keneya-red animate-spin" />
+            </div>
+        }>
+            <BroadcastAlertsContent />
+        </Suspense>
     );
 }
