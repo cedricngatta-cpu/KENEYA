@@ -10,7 +10,6 @@ import Link from 'next/link'
 const ROLES = [
     { value: 'community_agent', label: 'Agent Terrain', icon: Users, desc: 'Collecte terrain', color: 'border-blue-500 text-blue-400' },
     { value: 'health_center', label: 'Centre de Santé', icon: HeartPulse, desc: 'Prise en charge', color: 'border-emerald-500 text-emerald-400' },
-    { value: 'admin', label: 'Administrateur', icon: Shield, desc: 'Gestion plateforme', color: 'border-purple-500 text-purple-400' },
 ]
 
 export default function SignupPage() {

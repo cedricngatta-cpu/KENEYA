@@ -49,14 +49,41 @@ export async function proxy(request: NextRequest) {
     const protectedPaths = ['/dashboard', '/admin'];
     const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
 
-    if (isProtected && !user) {
+    if (isProtected) {
+        if (!user) {
+            const url = request.nextUrl.clone();
+            url.pathname = '/pro/login';
+            url.searchParams.set('redirect', pathname);
+            return NextResponse.redirect(url);
+        }
+
+        // Vérification du rôle pour les routes protégées
+        const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
         const url = request.nextUrl.clone();
-        url.pathname = '/pro/login';
-        url.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(url);
+
+        // Sécurité : Empêcher l'accès croisé aux dashboards
+        if (pathname.startsWith('/admin') && userData?.role !== 'admin') {
+            url.pathname = '/';
+            return NextResponse.redirect(url);
+        }
+
+        if (pathname.startsWith('/dashboard/center') && userData?.role !== 'health_center') {
+            url.pathname = '/';
+            return NextResponse.redirect(url);
+        }
+
+        if (pathname.startsWith('/dashboard/agent') && userData?.role !== 'community_agent') {
+            url.pathname = '/';
+            return NextResponse.redirect(url);
+        }
     }
 
-    // Si connecté et tentative d'accès aux pages login/signup
+    // Si connecté et tentative d'accès aux pages login/signup, on redirige vers le dashboard approprié
     if (user && (pathname.startsWith('/auth') || pathname.startsWith('/pro'))) {
         const { data: userData } = await supabase
             .from('users')
@@ -76,8 +103,6 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(url);
         }
 
-        // Si le rôle n'est pas pro, on laisse l'utilisateur accéder à la page demandée (login/pro)
-        // ou on laisse le flux d'authentification se gérer lui-même.
         return supabaseResponse;
     }
 
