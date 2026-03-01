@@ -138,7 +138,7 @@ export default function Home() {
                                 <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">Détection Syndromique</h2>
                             </div>
                             <p className="text-slate-500 font-medium max-w-sm">
-                                KENEYA regroupe les signalements autour de ces 6 syndromes critiques pour une classification instantanée par IA.
+                                KENEYA regroupe les signalements autour de ces 6 syndromes critiques pour une classification instantanée.
                             </p>
                         </div>
 
@@ -168,7 +168,7 @@ export default function Home() {
                         <div className="text-center max-w-2xl mx-auto mb-12">
                             <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight mb-4">Un système conçu pour tous.</h2>
                             <p className="text-slate-600 font-medium text-base">
-                                Notre intelligence artificielle (Gemini & Claude) convertit la voix locale en données médicales structurées pour les équipes d'intervention.
+                                Le moteur intelligent de KENEYA convertit la voix locale en données médicales structurées pour les équipes d'intervention.
                             </p>
                         </div>
 
@@ -187,7 +187,7 @@ export default function Home() {
                                     <MessageSquare size={32} />
                                 </div>
                                 <h3 className="text-lg font-black text-keneya-navy mb-3">Je décris au micro</h3>
-                                <p className="text-slate-500 font-medium text-sm">Dialogue naturel avec l'IA qui écoute les symptômes et rassure le patient.</p>
+                                <p className="text-slate-500 font-medium text-sm">Dialogue naturel avec KENEYA qui écoute les symptômes et rassure le patient.</p>
                             </div>
 
                             {/* Carte 3 */}

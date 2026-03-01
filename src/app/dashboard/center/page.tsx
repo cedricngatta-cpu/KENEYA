@@ -242,7 +242,7 @@ export default function CenterDashboardPage() {
                             </div>
                             <div>
                                 <h2 className="text-lg md:text-xl font-black text-red-900">Alerte Épidémique Majeure</h2>
-                                <p className="text-red-700/70 text-xs md:text-sm font-medium">L'IA a détecté {activeClusters.length} cluster(s) actif(s).</p>
+                                <p className="text-red-700/70 text-xs md:text-sm font-medium">KENEYA a détecté {activeClusters.length} cluster(s) actif(s).</p>
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-2 w-full xl:w-auto">
@@ -378,7 +378,7 @@ export default function CenterDashboardPage() {
                                         <button
                                             onClick={() => generateSMSText(r)}
                                             className="p-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all border border-emerald-100 shadow-sm shrink-0"
-                                            title="Notifier par SMS IA"
+                                            title="Notifier par SMS KENEYA"
                                         >
                                             <Send size={14} />
                                         </button>
@@ -491,7 +491,7 @@ export default function CenterDashboardPage() {
                                     <MessageSquare size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg md:text-xl font-black text-slate-900 leading-tight">Notification <span className="text-emerald-600">IA</span></h2>
+                                    <h2 className="text-lg md:text-xl font-black text-slate-900 leading-tight">Notification <span className="text-emerald-600">KENEYA</span></h2>
                                     <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Communication Patient</p>
                                 </div>
                             </div>
@@ -521,7 +521,7 @@ export default function CenterDashboardPage() {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-2 flex items-center gap-2">
-                                    Message Généré par IA
+                                    Message Généré par KENEYA
                                     {isGenerating && <Loader2 size={12} className="animate-spin text-emerald-500" />}
                                 </label>
                                 <textarea
@@ -532,7 +532,7 @@ export default function CenterDashboardPage() {
                                     placeholder="Génération en cours..."
                                 />
                                 <p className="text-[9px] text-slate-400 font-medium px-2 italic">
-                                    Ce message a été optimisé par l'IA en fonction des symptômes détectés. Vous pouvez le modifier avant l'envoi.
+                                    Ce message a été optimisé par KENEYA en fonction des symptômes détectés. Vous pouvez le modifier avant l'envoi.
                                 </p>
                             </div>
                         </div>

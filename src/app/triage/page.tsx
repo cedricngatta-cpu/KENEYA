@@ -323,7 +323,7 @@ export default function TriagePage() {
                             <Volume2 size={48} className="text-white relative z-10 animate-pulse" />
                         </div>
                         <h1 className="text-2xl font-black text-white text-center leading-tight mb-2 uppercase tracking-tighter">
-                            L'IA <span className={diagnosisData?.diagnosis === 'danger' && step === 'result_vocal' ? "text-keneya-red-light" : "text-keneya-green-light"}>vous parle</span>
+                            KENEYA <span className={diagnosisData?.diagnosis === 'danger' && step === 'result_vocal' ? "text-keneya-red-light" : "text-keneya-green-light"}>vous parle</span>
                         </h1>
                         <p className="text-base text-slate-400 font-medium text-center italic mb-8">
                             {step === 'listening_contact' ? "Je vous écoute..." : "Écoutez l'instruction..."}

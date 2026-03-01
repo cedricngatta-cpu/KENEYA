@@ -115,7 +115,7 @@ function BroadcastAlertsContent() {
 
     const handleGenerateIAMessage = async () => {
         if (targetEpidemy === 'all' && targetZone === 'all') {
-            setMessage("Veuillez d'abord sélectionner au moins une zone ou une épidémie pour que l'IA soit précise.");
+            setMessage("Veuillez d'abord sélectionner au moins une zone ou une épidémie pour que KENEYA soit précise.");
             return;
         }
 
@@ -138,7 +138,7 @@ function BroadcastAlertsContent() {
             }
         } catch (err) {
             console.error(err);
-            setMessage("L'IA est momentanément indisponible.");
+            setMessage("KENEYA est momentanément indisponible.");
         } finally {
             setIsGeneratingMessage(false);
         }
@@ -276,7 +276,7 @@ function BroadcastAlertsContent() {
                         {/* 2. ÉPIDÉMIE */}
                         <div>
                             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <Bug size={14} /> 2. Épidémie / Maladie Ciblée (Pour IA)
+                                <Bug size={14} /> 2. Épidémie / Maladie Ciblée (Pour KENEYA)
                             </h3>
                             <div className="relative z-20">
                                 <button
@@ -419,7 +419,7 @@ function BroadcastAlertsContent() {
 
                                 <button type="button" onClick={handleGenerateIAMessage} disabled={isGeneratingMessage} className="text-xs font-bold text-purple-600 bg-purple-50 border border-purple-200 px-3 py-2 rounded-xl flex items-center gap-2 hover:bg-purple-100 hover:border-purple-300 transition-colors shadow-sm active:scale-95 disabled:opacity-50">
                                     {isGeneratingMessage ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                                    Générer avec l'IA
+                                    Générer avec KENEYA
                                 </button>
                             </div>
                             <textarea

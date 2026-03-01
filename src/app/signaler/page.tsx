@@ -181,6 +181,15 @@ export default function SignalerFlow() {
         recognition.continuous = true;
         recognition.interimResults = true;
 
+        recognition.onerror = (event: any) => {
+            console.error('Speech Recognition Error:', event.error);
+            setIsRecording(false);
+            if (event.error === 'not-allowed') {
+                const errorMsg = "L'accès au micro a été refusé. Veuillez l'autoriser dans les paramètres de votre navigateur pour continuer.";
+                speakText(errorMsg, 'intro');
+            }
+        };
+
         recognition.onstart = () => { setIsRecording(true); setTranscript(''); transcriptRef.current = ''; };
         recognition.onresult = (e: any) => {
             let current = '';
@@ -251,6 +260,7 @@ export default function SignalerFlow() {
                 const isFr = ['1', 'un', 'francais', 'français', 'france'].some(w => finalTranscript.includes(w));
                 const isDioula = ['2', 'deux', 'dioula', 'jula'].some(w => finalTranscript.includes(w));
                 const isBaoule = ['3', 'trois', 'baoule', 'baoulé'].some(w => finalTranscript.includes(w));
+                const isBete = ['4', 'quatre', 'bété', 'bete'].some(w => finalTranscript.includes(w));
 
                 if (isFr) {
                     // Priorité absolue au Français (Scénario 1)
@@ -259,6 +269,8 @@ export default function SignalerFlow() {
                     setUserLanguage('dioula');
                 } else if (isBaoule) {
                     setUserLanguage('baoule');
+                } else if (isBete) {
+                    setUserLanguage('bete');
                 } else {
                     // Par défaut et de force : Français si incompréhension
                     setUserLanguage('fr');
@@ -373,7 +385,7 @@ export default function SignalerFlow() {
     // ==========================================
     useEffect(() => {
         if (step === 'greeting_vocal') {
-            speakText("Bonjour. Choississez votre langue. Si c'est Français dites 1. Si c'est Dioula dites 2. Si c'est Baoulé dites 3.", 'listening_lang');
+            speakText("Bonjour. Choississez votre langue. Si c'est Français dites 1. Si c'est Dioula dites 2. Si c'est Baoulé dites 3. Si c'est Bété dites 4.", 'listening_lang');
         } else if (step === 'listening_lang') {
             startListening('lang');
         } else if (step === 'lang') {
@@ -494,7 +506,7 @@ export default function SignalerFlow() {
                             <Volume2 size={48} className="text-white relative z-10 animate-pulse" />
                         </div>
                         <h1 className="text-2xl font-black text-white text-center leading-tight mb-2 uppercase tracking-tighter">
-                            L'IA <span className={diagnosis === 'danger' && step === 'result_vocal' ? "text-keneya-red-light" : "text-keneya-green-light"}>vous parle</span>
+                            KENEYA <span className={diagnosis === 'danger' && step === 'result_vocal' ? "text-keneya-red-light" : "text-keneya-green-light"}>vous parle</span>
                         </h1>
                         <p className="text-base text-slate-400 font-medium text-center italic">
                             Écoutez bien la question...
