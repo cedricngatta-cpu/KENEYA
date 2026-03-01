@@ -18,7 +18,7 @@ export default function Home() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUser(user);
-                const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+                const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single() as any;
                 if (userData?.role === 'admin') setDashboardUrl('/admin');
                 else if (userData?.role === 'health_center') setDashboardUrl('/dashboard/center');
                 else if (userData?.role === 'community_agent') setDashboardUrl('/dashboard/agent');
