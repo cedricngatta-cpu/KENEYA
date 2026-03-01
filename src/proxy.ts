@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 // KENEYA Middleware v2.2 - User specific structure
 
-export default async function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -45,8 +45,8 @@ export default async function proxy(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // Routes protégées (dashboard)
-    const protectedPaths = ['/dashboard'];
+    // Routes protégées (dashboard & admin)
+    const protectedPaths = ['/dashboard', '/admin'];
     const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
 
     if (isProtected && !user) {
