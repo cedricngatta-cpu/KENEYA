@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
-// KENEYA Middleware v2.1 - Fix conflict Turbo
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+// KENEYA Middleware v2.2 - User specific structure
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -85,6 +86,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|icons|audio|manifest.json|api).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico).*)',
     ],
 };
