@@ -62,6 +62,20 @@ export default function LoginPage() {
         }
     }
 
+    const handleSocialLogin = async (provider: 'google' | 'apple') => {
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider,
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`,
+                },
+            })
+            if (error) throw error
+        } catch (err: any) {
+            setError(err.message || `Erreur lors de la connexion avec ${provider}`)
+        }
+    }
+
     return (
         <div className="min-h-screen bg-keneya-navy flex items-center justify-center p-4 relative overflow-hidden">
             {/* Glow Effect */}
@@ -133,6 +147,34 @@ export default function LoginPage() {
                         )}
                     </button>
                 </form>
+
+                {/* SOCIAL LOGIN SEPARATOR */}
+                <div className="relative my-10">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/10"></div>
+                    </div>
+                    <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
+                        <span className="bg-keneya-navy px-4 text-slate-500">Ou continuer avec</span>
+                    </div>
+                </div>
+
+                {/* SOCIAL BUTTONS */}
+                <div className="grid grid-cols-2 gap-4">
+                    <button
+                        onClick={() => handleSocialLogin('google')}
+                        className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group"
+                    >
+                        <Image src="https://www.google.com/favicon.ico" alt="Google" width={20} height={20} className="grayscale group-hover:grayscale-0 transition-all" />
+                        <span className="text-white text-sm font-bold">Google</span>
+                    </button>
+                    <button
+                        onClick={() => handleSocialLogin('apple')}
+                        className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group"
+                    >
+                        <Image src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" width={18} height={18} className="invert opacity-50 group-hover:opacity-100 transition-all" />
+                        <span className="text-white text-sm font-bold">Apple</span>
+                    </button>
+                </div>
 
                 <div className="mt-8 text-center">
                     <p className="text-slate-500 text-xs font-medium">
