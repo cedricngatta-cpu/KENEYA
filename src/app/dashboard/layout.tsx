@@ -12,6 +12,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const supabase = createClient();
     const [alertCount, setAlertCount] = useState(0);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         async function fetchStatus() {
@@ -34,9 +35,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            {/* Sidebar - Masquée si on est sur la map */}
-            <aside className={`fixed left-0 top-0 bottom-0 w-56 bg-keneya-navy text-white flex flex-col z-20 shadow-xl transition-transform duration-300 ${pathname?.startsWith('/dashboard/map') ? '-translate-x-full' : 'translate-x-0'}`}>
+        <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
+            {/* Overlay mobile */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-keneya-navy/60 backdrop-blur-sm z-30 md:hidden animate-in fade-in duration-300"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`fixed left-0 top-0 bottom-0 w-64 bg-keneya-navy text-white flex flex-col z-40 shadow-xl transition-all duration-300 transform 
+                ${pathname?.startsWith('/dashboard/map') ? '-translate-x-full' : (isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0')}`}>
                 <div className="p-5 flex items-center gap-3 border-b border-white/10">
                     <Link href="/dashboard" className="relative h-10 w-40 block transition-opacity hover:opacity-80 rounded-xl overflow-hidden isolate">
                         <Image
@@ -104,14 +114,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </aside>
 
             {/* Main Content */}
-            <main className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${pathname?.startsWith('/dashboard/map') ? 'ml-0' : 'ml-56'}`}>
+            <main className={`flex-1 flex flex-col min-h-screen transition-all duration-300 
+                ${pathname?.startsWith('/dashboard/map') ? 'ml-0' : 'ml-0 md:ml-64'}`}>
 
                 {/* Header Bar - Masqué conditionnellement ou rendu flottant pour le retour  */}
                 {!pathname?.startsWith('/dashboard/map') ? (
-                    <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-[40] transition-all">
+                    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-[40] transition-all">
                         <div className="flex items-center gap-3">
-                            <span className="w-2 h-2 rounded-full bg-keneya-green animate-pulse"></span>
-                            <span className="text-xs font-bold text-slate-600">Serveur Connecté</span>
+                            <button
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg md:hidden transition-colors"
+                            >
+                                <LayoutDashboard size={24} />
+                            </button>
+                            <div className="hidden sm:flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-keneya-green animate-pulse"></span>
+                                <span className="text-[10px] md:text-xs font-bold text-slate-600">Serveur Connecté</span>
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-4">

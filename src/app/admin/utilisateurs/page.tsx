@@ -193,28 +193,28 @@ export default function AdminUsersPage() {
         <div className="space-y-8 animate-in fade-in slide-in-from-right-5 duration-700 pb-20">
 
             {/* Header */}
-            <div className="flex items-center justify-between bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-200 shadow-sm">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Gestion des <span className="text-keneya-green">Utilisateurs</span></h1>
-                    <p className="text-slate-500 font-medium max-w-xl">
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mb-2">Gestion des <span className="text-keneya-green">Utilisateurs</span></h1>
+                    <p className="text-sm md:text-base text-slate-500 font-medium max-w-xl">
                         {users.length} utilisateur(s) sur la plateforme KENEYA.
                     </p>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={fetchUsers} className="p-4 bg-slate-50 border border-slate-200 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all">
+                <div className="flex gap-2 w-full lg:w-auto">
+                    <button onClick={fetchUsers} className="p-3 md:p-4 bg-slate-50 border border-slate-200 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all">
                         <RefreshCw size={20} />
                     </button>
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="px-6 py-4 bg-keneya-navy text-white font-black text-sm uppercase tracking-widest rounded-2xl flex items-center gap-3 hover:bg-keneya-navy-light transition-all shadow-xl shadow-keneya-navy/20 active:scale-95"
+                        className="flex-1 lg:flex-none px-4 md:px-6 py-4 bg-keneya-navy text-white font-black text-xs md:text-sm uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:bg-keneya-navy-light transition-all shadow-xl shadow-keneya-navy/20 active:scale-95"
                     >
-                        <UserPlus size={20} /> Nouvel Utilisateur
+                        <UserPlus size={20} /> Nouveau
                     </button>
                 </div>
             </div>
 
             {/* Compteurs par rôle */}
-            <div className="grid grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {ROLES.map((r) => (
                     <button
                         key={r.value}
@@ -263,12 +263,12 @@ export default function AdminUsersPage() {
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
                                 <tr>
-                                    <th className="p-6">Utilisateur</th>
-                                    <th className="p-6">Rôle</th>
-                                    <th className="p-6">Téléphone</th>
-                                    <th className="p-6">Langue</th>
-                                    <th className="p-6">Inscrit le</th>
-                                    <th className="p-6 text-right">Actions</th>
+                                    <th className="p-4 md:p-6">Utilisateur</th>
+                                    <th className="p-4 md:p-6">Rôle</th>
+                                    <th className="p-4 md:p-6 hidden md:table-cell">Téléphone</th>
+                                    <th className="p-4 md:p-6 hidden sm:table-cell">Langue</th>
+                                    <th className="p-4 md:p-6 hidden lg:table-cell">Inscrit le</th>
+                                    <th className="p-4 md:p-6 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
@@ -285,21 +285,21 @@ export default function AdminUsersPage() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-6">
-                                            <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border ${ROLE_COLORS[user.role] || 'bg-slate-50 text-slate-500 border-slate-100'}`}>
+                                        <td className="p-4 md:p-6">
+                                            <span className={`px-2 py-1 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider border ${ROLE_COLORS[user.role] || 'bg-slate-50 text-slate-500 border-slate-100'}`}>
                                                 {ROLE_LABELS[user.role] || user.role}
                                             </span>
                                         </td>
-                                        <td className="p-6">
+                                        <td className="p-4 md:p-6 hidden md:table-cell">
                                             <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
                                                 <Phone size={14} className="text-slate-300" />
                                                 {user.phone || '—'}
                                             </div>
                                         </td>
-                                        <td className="p-6">
+                                        <td className="p-4 md:p-6 hidden sm:table-cell">
                                             <span className="text-xs font-bold text-slate-500 uppercase">{user.language || 'fr'}</span>
                                         </td>
-                                        <td className="p-6">
+                                        <td className="p-4 md:p-6 hidden lg:table-cell">
                                             <span className="text-xs text-slate-400 font-medium">{formatDate(user.created_at)}</span>
                                         </td>
                                         <td className="p-6 text-right">

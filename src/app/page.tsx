@@ -12,11 +12,11 @@ export default function Home() {
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
 
             {/* ================= HEADER / NAVBAR ================= */}
-            <header className="fixed top-0 left-0 right-0 h-24 bg-white/95 backdrop-blur-md z-50 border-b border-slate-200 shadow-sm flex items-center">
-                <div className="container mx-auto px-6 max-w-7xl flex items-center justify-between">
+            <header className="fixed top-0 left-0 right-0 h-16 md:h-24 bg-white/95 backdrop-blur-md z-50 border-b border-slate-200 shadow-sm flex items-center">
+                <div className="container mx-auto px-4 md:px-6 max-w-7xl flex items-center justify-between">
                     {/* Vrai Logo KENEYA */}
                     <Link href="/" className="flex items-center transition-opacity hover:opacity-80 rounded-2xl overflow-hidden isolate">
-                        <div className="relative h-24 w-80">
+                        <div className="relative h-12 w-48 md:h-24 md:w-80">
                             <Image
                                 src="/logo-keneya.png"
                                 alt="Logo KENEYA"
@@ -48,14 +48,14 @@ export default function Home() {
                             <span>Système d'Alerte Citoyen</span>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight mb-6 tracking-tighter">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight mb-6 tracking-tighter text-wrap-balance">
                             Prévenir, Alerter et <br className="hidden md:block" />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-keneya-green-light to-white">
                                 Protéger Abidjan.
                             </span>
                         </h1>
 
-                        <p className="text-lg md:text-xl text-slate-300 max-w-2xl mb-10 font-medium leading-relaxed">
+                        <p className="text-base md:text-xl text-slate-300 max-w-2xl mb-10 font-medium leading-relaxed px-4">
                             La santé communautaire à portée de voix. Signalez une urgence en langue locale sans consulter votre clavier.
                         </p>
 

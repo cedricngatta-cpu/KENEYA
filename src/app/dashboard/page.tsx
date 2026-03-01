@@ -127,7 +127,7 @@ export default function DashboardHome() {
     }
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 relative">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 relative">
 
             {/* MODALE DE DÉTAILS */}
             {selectedReport && (
@@ -191,20 +191,20 @@ export default function DashboardHome() {
             )}
 
             {/* HEADER */}
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8">
+            <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 mb-4 md:mb-8">
                 <div>
-                    <h1 className="text-3xl font-black text-keneya-navy tracking-tight mb-1">Centre de Commandement</h1>
-                    <p className="text-slate-500 font-medium flex items-center gap-2">
+                    <h1 className="text-2xl md:text-3xl font-black text-keneya-navy tracking-tight mb-1">Centre de Commandement</h1>
+                    <p className="text-xs md:text-sm text-slate-500 font-medium flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-keneya-green animate-pulse"></span>
                         Analyse temps réel — Grand Abidjan • {userName}
                     </p>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={fetchAll} disabled={refreshing} className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2">
-                        <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} /> Actualiser
+                <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+                    <button onClick={fetchAll} disabled={refreshing} className="flex-1 lg:flex-none px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm">
+                        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualiser
                     </button>
-                    <Link href="/dashboard/center" className="px-5 py-2.5 bg-keneya-navy text-white font-bold rounded-xl shadow-md hover:bg-keneya-navy-light transition-colors flex items-center gap-2">
-                        <HeartPulse size={18} /> Cas Cliniques
+                    <Link href="/dashboard/center" className="flex-1 lg:flex-none px-4 py-2.5 bg-keneya-navy text-white font-bold rounded-xl shadow-md hover:bg-keneya-navy-light transition-colors flex items-center justify-center gap-2 text-sm">
+                        <HeartPulse size={16} /> Cas Cliniques
                     </Link>
                 </div>
             </div>
@@ -346,11 +346,11 @@ export default function DashboardHome() {
                     <div className="flex-1 overflow-x-auto">
                         <table className="w-full text-left border-collapse min-w-[600px]">
                             <thead>
-                                <tr className="text-xs uppercase tracking-widest text-slate-400 border-b border-slate-100 bg-white">
+                                <tr className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 border-b border-slate-100 bg-white">
                                     <th className="p-4 font-black">Identité & Zone</th>
-                                    <th className="p-4 font-black">Téléphone</th>
+                                    <th className="p-4 font-black hidden md:table-cell">Téléphone</th>
                                     <th className="p-4 font-black">Sévérité</th>
-                                    <th className="p-4 font-black">Symptômes</th>
+                                    <th className="p-4 font-black hidden sm:table-cell">Symptômes</th>
                                     <th className="p-4 font-black"></th>
                                 </tr>
                             </thead>
@@ -367,15 +367,15 @@ export default function DashboardHome() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4">
+                                        <td className="p-4 hidden md:table-cell">
                                             <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">{r.patient_phone || '—'}</span>
                                         </td>
-                                        <td className="p-4">
-                                            <span className={`text-xs font-black ${severityColor(r.severity)} uppercase`}>
+                                        <td className="p-4 text-center">
+                                            <span className={`text-[10px] md:text-xs font-black ${severityColor(r.severity)} uppercase`}>
                                                 {severityLabel(r.severity)}
                                             </span>
                                         </td>
-                                        <td className="p-4">
+                                        <td className="p-4 hidden sm:table-cell">
                                             <span className={`text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border ${severityBg(r.severity)}`}>
                                                 {Array.isArray(r.symptoms) ? r.symptoms.slice(0, 2).join(', ') : '—'}
                                             </span>

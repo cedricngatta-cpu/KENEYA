@@ -60,4 +60,21 @@ body {
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+
+    .mobile-safe-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .text-wrap-balance {
+        text-wrap: balance;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    overflow-x: hidden;
+    width: 100%;
 }
