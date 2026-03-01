@@ -56,8 +56,18 @@ export async function proxy(request: NextRequest) {
 
     // Si connecté et tentative d'accès aux pages login/signup
     if (user && (pathname.startsWith('/auth') || pathname.startsWith('/pro'))) {
+        const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
         const url = request.nextUrl.clone();
-        url.pathname = '/';
+        if (userData?.role === 'admin') url.pathname = '/admin';
+        else if (userData?.role === 'health_center') url.pathname = '/dashboard/center';
+        else if (userData?.role === 'community_agent') url.pathname = '/dashboard/agent';
+        else url.pathname = '/';
+
         return NextResponse.redirect(url);
     }
 
