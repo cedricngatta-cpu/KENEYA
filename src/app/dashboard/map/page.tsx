@@ -49,6 +49,22 @@ export default function SigMapDashboard() {
     const [showRightPanel, setShowRightPanel] = useState(true);
     const [liveCases, setLiveCases] = useState<any[]>([]);
     const [liveFeed, setLiveFeed] = useState<any[]>([]);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (mobile) {
+                setShowLeftPanel(false);
+                setShowRightPanel(false);
+            }
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         fetchReports();
@@ -110,44 +126,44 @@ export default function SigMapDashboard() {
             <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.4)_100%)]"></div>
 
-                {/* Effet Scanner Radar */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-keneya-green/20 rounded-full"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(70,131,62,0.1)_360deg)] animate-spin" style={{ animationDuration: '6s' }}></div>
+                {/* Effet Scanner Radar - Ajusté pour Mobile */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[800px] h-[300px] md:h-[800px] border border-keneya-green/20 rounded-full"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[800px] h-[300px] md:h-[800px] rounded-full bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(70,131,62,0.1)_360deg)] animate-spin" style={{ animationDuration: '6s' }}></div>
             </div>
 
-            {/* CONTRÔLES D'AFFICHAGE FLOTTANTS */}
-            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex gap-4">
+            {/* CONTRÔLES D'AFFICHAGE FLOTTANTS - Toujours visibles sur mobile si panneaux fermés */}
+            <div className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-50 flex gap-4">
                 {!showLeftPanel && (
-                    <button onClick={() => setShowLeftPanel(true)} className="p-4 bg-slate-900/80 backdrop-blur border border-white/10 rounded-2xl shadow-2xl hover:bg-keneya-navy transition-all animate-in slide-in-from-bottom-5 pointer-events-auto">
-                        <Filter className="text-keneya-green" size={24} />
+                    <button onClick={() => setShowLeftPanel(true)} className="p-3 md:p-4 bg-slate-900/80 backdrop-blur border border-white/10 rounded-2xl shadow-2xl hover:bg-keneya-navy transition-all animate-in slide-in-from-bottom-5 pointer-events-auto">
+                        <Filter className="text-keneya-green md:w-6 md:h-6" size={20} />
                     </button>
                 )}
                 {!showRightPanel && (
-                    <button onClick={() => setShowRightPanel(true)} className="p-4 bg-slate-900/80 backdrop-blur border border-white/10 rounded-2xl shadow-2xl hover:bg-keneya-navy transition-all animate-in slide-in-from-bottom-5 pointer-events-auto">
-                        <ActivitySquare className="text-keneya-red" size={24} />
+                    <button onClick={() => setShowRightPanel(true)} className="p-3 md:p-4 bg-slate-900/80 backdrop-blur border border-white/10 rounded-2xl shadow-2xl hover:bg-keneya-navy transition-all animate-in slide-in-from-bottom-5 pointer-events-auto">
+                        <ActivitySquare className="text-keneya-red md:w-6 md:h-6" size={20} />
                     </button>
                 )}
             </div>
 
             {/* PANNEAU LATÉRAL GAUCHE (Contrôles & Couches) */}
-            <div className={`absolute top-6 left-6 bottom-6 w-80 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl flex flex-col z-20 shadow-2xl overflow-hidden no-scrollbar transition-all duration-500 ${showLeftPanel ? 'translate-x-0 opacity-100' : '-translate-x-[120%] opacity-0'}`}>
-                <div className="p-6 border-b border-white/5 bg-slate-900/50 flex items-center justify-between">
+            <div className={`absolute top-4 md:top-6 left-4 md:left-6 bottom-4 md:bottom-6 w-[calc(100%-2rem)] md:w-80 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl flex flex-col z-20 shadow-2xl overflow-hidden no-scrollbar transition-all duration-500 ${showLeftPanel ? 'translate-x-0 opacity-100' : '-translate-x-[120%] opacity-0'}`}>
+                <div className="p-4 md:p-6 border-b border-white/5 bg-slate-900/50 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
-                            <Radio className="text-keneya-green animate-pulse" /> Radar SIG
+                        <h2 className="text-base md:text-xl font-black text-white flex items-center gap-2 tracking-tight">
+                            <Radio className="text-keneya-green animate-pulse w-5 h-5 md:w-6 md:h-6" /> Radar SIG
                         </h2>
-                        <p className="text-slate-400 text-xs font-medium mt-1">Surveillance Épidémiologique</p>
+                        <p className="text-slate-400 text-[8px] md:text-xs font-medium mt-1 uppercase tracking-widest opacity-70">Abidjan Surveillance</p>
                     </div>
                     <button onClick={() => setShowLeftPanel(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-500">
                         <Filter size={18} />
                     </button>
                 </div>
 
-                <div className="p-6 flex-1 overflow-y-auto space-y-8 no-scrollbar">
+                <div className="p-4 md:p-6 flex-1 overflow-y-auto space-y-6 md:space-y-8 no-scrollbar">
                     {/* Recherche */}
                     <div className="relative">
-                        <input type="text" placeholder="Rechercher une zone, clinique..." className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-keneya-green transition-colors" />
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input type="text" placeholder="Rechercher..." className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-keneya-green transition-colors" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     </div>
 
                     {/* Échelle Temps */}
@@ -189,29 +205,29 @@ export default function SigMapDashboard() {
             </div>
 
             {/* PANNEAU LATÉRAL DROIT (Live Feed & HUD) */}
-            <div className={`absolute top-6 right-6 bottom-6 w-80 flex flex-col gap-6 z-20 transition-all duration-500 ${showRightPanel ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0'}`}>
+            <div className={`absolute top-4 md:top-6 right-4 md:right-6 bottom-4 md:bottom-6 w-[calc(100%-2rem)] md:w-80 flex flex-col gap-4 md:gap-6 z-20 transition-all duration-500 ${showRightPanel ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0'}`}>
                 {/* HUD Info Box */}
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-2xl relative">
+                <div className="bg-slate-900/80 backdrop-blur-xl border border-white/10 p-4 md:p-5 rounded-3xl shadow-2xl relative">
                     <button onClick={() => setShowRightPanel(false)} className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-500">
                         <ActivitySquare size={18} />
                     </button>
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><ShieldAlert size={14} /> Statut IA KENEYA</h3>
+                    <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2"><ShieldAlert size={14} /> Statut IA KENEYA</h3>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-300">Moteur Détection</span>
-                            <span className="flex items-center gap-1 text-[10px] font-black text-keneya-green uppercase bg-keneya-green/10 border border-keneya-green/20 px-2 py-0.5 rounded-full"><span className="w-1.5 h-1.5 bg-keneya-green rounded-full animate-pulse"></span> Opérationnel</span>
+                            <span className="text-[10px] md:text-xs font-bold text-slate-300">Moteur Détection</span>
+                            <span className="flex items-center gap-1 text-[8px] md:text-[10px] font-black text-keneya-green uppercase bg-keneya-green/10 border border-keneya-green/20 px-2 py-0.5 rounded-full"><span className="w-1.5 h-1.5 bg-keneya-green rounded-full animate-pulse"></span> OK</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-300">Niveau Alerte (Abidjan)</span>
-                            <span className="text-[10px] font-black text-white uppercase bg-keneya-red border border-keneya-red px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(225,29,72,0.5)]">Étape 2 (Vigilance)</span>
+                            <span className="text-[10px] md:text-xs font-bold text-slate-300">Alerte</span>
+                            <span className="text-[8px] md:text-[10px] font-black text-white uppercase bg-keneya-red border border-keneya-red px-2 py-0.5 rounded-full shadow-lg">VIGILANCE</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Live Feed */}
-                <div className="flex-1 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-2xl flex flex-col overflow-hidden">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        Flux en direct <span className="w-2 h-2 rounded-full bg-keneya-red animate-pulse"></span>
+                <div className="flex-1 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-4 md:p-5 shadow-2xl flex flex-col overflow-hidden">
+                    <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2">
+                        Flux direct <span className="w-2 h-2 rounded-full bg-keneya-red animate-pulse"></span>
                     </h3>
                     <div className="flex-1 overflow-y-auto space-y-3 pr-2 no-scrollbar text-sm">
                         {liveFeed.length > 0 ? liveFeed.map((event, i) => (

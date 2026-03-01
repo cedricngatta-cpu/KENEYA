@@ -162,26 +162,26 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 relative">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 relative">
 
             {/* HEADER */}
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 mb-4 md:mb-8">
                 <div>
-                    <h1 className="text-3xl font-black text-keneya-navy tracking-tight mb-1">Console d'Administration</h1>
-                    <p className="text-slate-500 font-medium flex items-center gap-2">
+                    <h1 className="text-xl md:text-3xl font-black text-keneya-navy tracking-tight mb-1">Console d'Administration</h1>
+                    <p className="text-slate-500 text-xs md:text-base font-medium flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-keneya-green animate-pulse"></span>
-                        Vue globale temps réel — Écosystème KENEYA
+                        <span className="truncate">Vue globale — Écosystème KENEYA</span>
                     </p>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={fetchDashboardData} disabled={loading} className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2">
-                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Actualiser
+                <div className="flex gap-3 w-full md:w-auto">
+                    <button onClick={fetchDashboardData} disabled={loading} className="flex-1 md:flex-none px-4 md:px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm">
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Actualiser
                     </button>
                 </div>
             </div>
 
             {/* COMPTEURS PRINCIPAUX */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {[
                     { icon: Users, label: 'Agents Terrain', value: stats?.totalAgents || 0, baseColor: 'blue', isPulse: false },
                     { icon: HeartPulse, label: 'Centres de Santé', value: stats?.totalCenters || 0, baseColor: 'emerald', isPulse: false },
@@ -197,20 +197,20 @@ export default function AdminPage() {
                     const colors = colorMap[item.baseColor];
 
                     return (
-                        <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
-                            <div className={`absolute top-0 right-0 w-24 h-24 ${colors.bg} rounded-bl-[4rem] -z-10 group-hover:scale-110 transition-transform`}></div>
-                            <div className="flex justify-between items-start mb-4">
-                                <div className={`p-3 ${colors.iconBg} ${colors.text} rounded-2xl`}>
-                                    <item.icon size={24} />
+                        <div key={i} className="bg-white p-5 md:p-6 rounded-3xl md:rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                            <div className={`absolute top-0 right-0 w-16 md:w-24 h-16 md:h-24 ${colors.bg} rounded-bl-[2rem] md:rounded-bl-[4rem] -z-10 group-hover:scale-110 transition-transform`}></div>
+                            <div className="flex justify-between items-start mb-3 md:mb-4">
+                                <div className={`p-2.5 md:p-3 ${colors.iconBg} ${colors.text} rounded-xl md:rounded-2xl`}>
+                                    <item.icon size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 {item.isPulse && item.value > 0 && (
-                                    <span className={`flex items-center gap-1 text-xs font-bold ${colors.text} ${colors.bg} px-2 py-1 rounded-lg animate-pulse`}>
-                                        <TrendingUp size={14} /> Actif
+                                    <span className={`flex items-center gap-1 text-[10px] md:text-xs font-bold ${colors.text} ${colors.bg} px-2 py-0.5 md:py-1 rounded-lg animate-pulse`}>
+                                        <TrendingUp size={12} className="md:w-3.5 md:h-3.5" /> Actif
                                     </span>
                                 )}
                             </div>
-                            <div className="text-4xl font-black text-keneya-navy tracking-tighter mb-1">{item.value}</div>
-                            <div className="text-sm font-bold text-slate-500">{item.label}</div>
+                            <div className="text-2xl md:text-4xl font-black text-keneya-navy tracking-tighter mb-1">{item.value}</div>
+                            <div className="text-[11px] md:text-sm font-bold text-slate-500 uppercase tracking-wide">{item.label}</div>
                         </div>
                     );
                 })}
@@ -335,21 +335,20 @@ export default function AdminPage() {
                     </h3>
                     <div className="flex-1 space-y-3">
                         {recentReports.length > 0 ? recentReports.map((r) => (
-                            <div key={r.id} className={`p-3 bg-slate-50 rounded-xl border-l-4 ${r.severity === 'rouge' ? 'border-red-500' : r.severity === 'jaune' ? 'border-orange-400' : 'border-keneya-green'} text-slate-600 flex items-center justify-between`}>
-                                <div className="flex flex-col gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className={`w-2 h-2 rounded-full ${severityColor(r.severity)}`}></span>
-                                        <span className="font-black text-xs text-slate-900">{r.patient_name || 'Citoyen Anonyme'}</span>
-                                        <span className="text-[10px] font-bold text-slate-400">({r.geo_cell || 'Non localisé'})</span>
+                            <div key={r.id} className={`p-3 bg-slate-50 rounded-xl border-l-4 ${r.severity === 'rouge' ? 'border-red-500' : r.severity === 'jaune' ? 'border-orange-400' : 'border-keneya-green'} text-slate-600 flex items-center justify-between gap-3`}>
+                                <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                        <span className={`w-2 h-2 rounded-full shrink-0 ${severityColor(r.severity)}`}></span>
+                                        <span className="font-black text-xs text-slate-900 truncate">{r.patient_name || 'Citoyen Anonyme'}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 ml-4">
-                                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{r.patient_phone || 'Pas de numéro'}</span>
-                                        <span className="text-[10px] font-bold text-slate-500 truncate max-w-[150px]">{r.suspected_illness || 'Symptômes divers'}</span>
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 ml-3.5 mt-0.5">
+                                        <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-100 w-fit shrink-0 tracking-tighter">{r.patient_phone || 'Sans No'}</span>
+                                        <span className="text-[9px] font-bold text-slate-500 truncate italic">{r.suspected_illness || 'Symptômes divers'}</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${severityBadge(r.severity)}`}>{r.severity.toUpperCase()}</span>
-                                    <span className="text-[10px] font-mono text-slate-400">{formatDate(r.created_at)}</span>
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                    <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black ${severityBadge(r.severity)} uppercase`}>{r.severity}</span>
+                                    <span className="text-[8px] font-mono text-slate-400">{formatTime(r.created_at)}</span>
                                 </div>
                             </div>
                         )) : (

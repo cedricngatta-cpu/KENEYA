@@ -133,21 +133,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <div className="flex flex-col items-end">
-                                <span className="text-sm font-black text-keneya-navy">Portail Pro</span>
-                                <span className="text-[10px] text-keneya-green font-bold uppercase tracking-widest">Connecté</span>
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <div className="flex flex-col items-end shrink-0">
+                                <span className="text-xs md:text-sm font-black text-keneya-navy leading-none">Portail Pro</span>
+                                <span className="text-[8px] md:text-[10px] text-keneya-green font-bold uppercase tracking-widest mt-1">Connecté</span>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm shrink-0">
                                 <Shield size={16} />
                             </div>
                         </div>
                     </header>
                 ) : (
                     /* Bouton retour flottant discret sur la map */
-                    <div className="fixed top-6 left-6 z-50">
-                        <Link href="/dashboard" className="px-5 py-3 bg-keneya-navy/80 hover:bg-keneya-navy backdrop-blur text-white font-bold rounded-xl shadow-2xl flex items-center gap-2 border border-white/10 transition-colors">
-                            <LayoutDashboard size={18} /> Quitter le Radar
+                    <div className="fixed top-4 left-4 md:top-6 md:left-6 z-50">
+                        <Link href="/dashboard" className="p-3 md:px-5 md:py-3 bg-keneya-navy/80 hover:bg-keneya-navy backdrop-blur text-white font-bold rounded-2xl md:rounded-xl shadow-2xl flex items-center justify-center gap-2 border border-white/10 transition-colors">
+                            <LayoutDashboard size={20} className="md:w-[18px] md:h-[18px]" />
+                            <span className="hidden md:inline">Quitter le Radar</span>
                         </Link>
                     </div>
                 )}

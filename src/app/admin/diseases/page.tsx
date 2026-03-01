@@ -143,21 +143,21 @@ export default function DiseasesAdminPage() {
     );
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500">
             {/* EN-TÊTE */}
-            <div className="flex justify-between items-end border-b border-slate-200 pb-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-end border-b border-slate-200 pb-6 gap-6">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-keneya-green/20 rounded-xl flex items-center justify-center text-keneya-green">
-                            <Syringe size={24} />
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-keneya-green/20 rounded-xl flex items-center justify-center text-keneya-green shrink-0">
+                            <Syringe size={24} className="md:w-7 md:h-7" />
                         </div>
-                        <h1 className="text-3xl font-black text-keneya-navy tracking-tight">Registre des Maladies</h1>
+                        <h1 className="text-xl md:text-3xl font-black text-keneya-navy tracking-tight leading-tight">Registre des Maladies</h1>
                     </div>
-                    <p className="text-slate-500 font-medium">Configurez les pathologies et les mots-clés reconnus par l'Intelligence Artificielle de Triage.</p>
+                    <p className="text-xs md:text-base text-slate-500 font-medium max-w-2xl">Configurez les pathologies et les mots-clés reconnus par l'Intelligence Artificielle de Triage.</p>
                 </div>
                 <button
                     onClick={openNewModal}
-                    className="flex items-center gap-2 px-6 py-3 bg-keneya-red text-white font-bold rounded-xl shadow-lg hover:bg-keneya-red-light hover:shadow-keneya-red/30 hover:-translate-y-1 transition-all"
+                    className="flex items-center justify-center gap-2 px-6 py-4 md:py-3 bg-keneya-red text-white font-black md:font-bold rounded-2xl md:rounded-xl shadow-lg hover:bg-keneya-red-light hover:shadow-keneya-red/30 hover:-translate-y-1 transition-all w-full md:w-auto text-sm"
                 >
                     <Plus size={20} />
                     Nouvelle Maladie
@@ -165,72 +165,80 @@ export default function DiseasesAdminPage() {
             </div>
 
             {/* BARRE DE RECHERCHE */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+            <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 md:gap-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 shrink-0">
                     <Search size={20} />
                 </div>
                 <input
                     type="text"
-                    placeholder="Rechercher par nom ou mot-clé (ex: diarrhée, fièvre...)"
-                    className="flex-1 bg-transparent border-none text-lg font-medium outline-none text-slate-700 placeholder:text-slate-300"
+                    placeholder="Chercher (diarrhée, fièvre...)"
+                    className="flex-1 bg-transparent border-none text-sm md:text-lg font-medium outline-none text-slate-700 placeholder:text-slate-300"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                 />
             </div>
 
             {/* TABLEAU DES MALADIES */}
-            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+                <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest font-bold">
-                                <th className="p-6">Maladie</th>
-                                <th className="p-6">Gravité</th>
-                                <th className="p-6 w-1/2">Mots-clés IA (Déclencheurs)</th>
-                                <th className="p-6 text-right">Actions</th>
+                            <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 text-[10px] md:text-xs uppercase tracking-widest font-black">
+                                <th className="p-4 md:p-6">Maladie</th>
+                                <th className="p-4 md:p-6 hidden sm:table-cell">Gravité</th>
+                                <th className="p-4 md:p-6 w-1/3 md:w-1/2">Mots-clés <span className="hidden md:inline">IA</span></th>
+                                <th className="p-4 md:p-6 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={4} className="p-12 text-center text-slate-400 font-medium">Chargement du dictionnaire médical...</td>
+                                    <td colSpan={4} className="p-8 md:p-12 text-center text-slate-400 font-medium text-xs md:text-base">Chargement du dictionnaire médical...</td>
                                 </tr>
                             ) : filteredDiseases.map(disease => (
                                 <tr key={disease.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="p-6">
-                                        <div className="font-bold text-slate-700 text-lg">{disease.name}</div>
+                                    <td className="p-4 md:p-6">
+                                        <div className="font-bold text-slate-700 text-sm md:text-lg">{disease.name}</div>
+                                        <div className="sm:hidden mt-2">
+                                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${getSeverityColor(disease.severity_level)}`}>
+                                                {disease.severity_level}
+                                            </span>
+                                        </div>
                                     </td>
-                                    <td className="p-6">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border ${getSeverityColor(disease.severity_level)}`}>
+                                    <td className="p-4 md:p-6 hidden sm:table-cell">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getSeverityColor(disease.severity_level)}`}>
                                             {disease.severity_level}
                                         </span>
                                     </td>
-                                    <td className="p-6">
-                                        <div className="flex flex-wrap gap-2">
-                                            {disease.keywords.map((k, i) => (
-                                                <span key={i} className="px-2 py-1 bg-slate-100 text-slate-500 rounded-md text-sm font-medium border border-slate-200">
+                                    <td className="p-4 md:p-6">
+                                        <div className="flex flex-wrap gap-1.5 md:gap-2">
+                                            {disease.keywords.slice(0, 4).map((k, i) => (
+                                                <span key={i} className="px-1.5 md:px-2 py-0.5 md:py-1 bg-slate-100 text-slate-500 rounded-lg text-[9px] md:text-xs font-bold border border-slate-200">
                                                     {k}
                                                 </span>
                                             ))}
+                                            {disease.keywords.length > 4 && (
+                                                <span className="text-[9px] md:text-xs text-slate-400 font-bold">+{disease.keywords.length - 4}</span>
+                                            )}
                                             {disease.keywords.length === 0 && (
-                                                <span className="text-slate-300 italic text-sm">Aucun mot-clé</span>
+                                                <span className="text-slate-300 italic text-[10px] md:text-sm">Aucun</span>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="p-6 text-right space-x-2">
+                                    <td className="p-4 md:p-6 text-right space-x-1 md:space-x-2">
                                         <button
                                             onClick={() => openEditModal(disease)}
-                                            className="w-10 h-10 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-keneya-green hover:bg-keneya-green/10 transition-colors"
+                                            className="w-8 h-8 md:w-10 md:h-10 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-keneya-green hover:bg-keneya-green/10 transition-colors shrink-0"
                                             title="Modifier"
                                         >
-                                            <Edit2 size={18} />
+                                            <Edit2 size={16} className="md:w-[18px] md:h-[18px]" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(disease.id)}
-                                            className="w-10 h-10 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-keneya-red hover:bg-keneya-red/10 transition-colors"
+                                            className="w-8 h-8 md:w-10 md:h-10 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-keneya-red hover:bg-keneya-red/10 transition-colors shrink-0"
                                             title="Supprimer"
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={16} className="md:w-[18px] md:h-[18px]" />
                                         </button>
                                     </td>
                                 </tr>
