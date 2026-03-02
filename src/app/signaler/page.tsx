@@ -5,6 +5,7 @@ import { Shield, ChevronLeft, Mic, MicOff, Check, Volume2 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { createClient } from '@/lib/supabase/client';
+import VoiceVisualizer from '@/components/ui/VoiceVisualizer';
 
 export default function SignalerFlow() {
     const { t, setUserLanguage } = useLanguage();
@@ -171,6 +172,18 @@ export default function SignalerFlow() {
         window.speechSynthesis.cancel();
         if ((window as any).currentAudio) {
             try { (window as any).currentAudio.pause(); } catch (e) { }
+        }
+
+        // Demander explicitement le micro avec réduction de bruit pour "réveiller" le hardware
+        // et s'assurer que le visualiseur et la reco partagent le même flux de qualité
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            }).catch(err => console.error("Hardware mic access error:", err));
         }
 
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -534,13 +547,17 @@ export default function SignalerFlow() {
                 {(step.startsWith('list') || step.startsWith('listen_')) && (
                     <div className="flex-1 flex flex-col items-center justify-center w-full animate-in fade-in slide-in-from-bottom-12 duration-500">
 
-                        <h1 className="text-2xl font-black text-white text-center mb-8 uppercase tracking-tight">
+                        <h1 className="text-2xl font-black text-white text-center mb-4 uppercase tracking-tight">
                             {step === 'listening_lang' ? "Choix de la langue" : step === 'listen_details' ? "Détails patient" : "Répondez (Oui / Non)"}
                         </h1>
 
+                        <div className="mb-6 w-full flex justify-center">
+                            <VoiceVisualizer isActive={isRecording} color="#f87171" />
+                        </div>
+
                         <button
                             onClick={stopListening}
-                            className="relative flex items-center justify-center w-40 h-40 rounded-full bg-keneya-red text-white shadow-[0_0_60px_rgba(201,42,42,0.4)] group active:scale-95 transition-transform"
+                            className="relative flex items-center justify-center w-36 h-36 rounded-full bg-keneya-red text-white shadow-[0_0_60px_rgba(201,42,42,0.4)] group active:scale-95 transition-transform"
                         >
                             <div className="absolute inset-0 border-[4px] border-white/20 rounded-full animate-ping"></div>
                             <Mic size={48} className="relative z-10 group-hover:scale-110 transition-transform" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Plus, Edit2, Trash2, Search, Save, X, Activity, AlertTriangle, Syringe } from 'lucide-react';
 
@@ -27,13 +27,9 @@ export default function DiseasesAdminPage() {
         severity_level: 'vert' as 'vert' | 'jaune' | 'rouge'
     });
 
-    useEffect(() => {
-        fetchDiseases();
-    }, []);
-
-    const fetchDiseases = async () => {
+    const fetchDiseases = useCallback(async () => {
         setIsLoading(true);
-        const { data, error } = await (supabase as any)
+        const { data, error } = await supabase
             .from('diseases')
             .select('*')
             .order('name');
@@ -49,15 +45,19 @@ export default function DiseasesAdminPage() {
             setDiseases(data);
         }
         setIsLoading(false);
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchDiseases();
+    }, [fetchDiseases]);
 
     const handleSave = async () => {
         const keywordArray = formData.keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
 
         if (editingDisease) {
             // Mise à jour
-            const { error } = await (supabase as any)
-                .from('diseases')
+            const { error } = await (supabase
+                .from('diseases') as any)
                 .update({
                     name: formData.name,
                     keywords: keywordArray,
@@ -74,8 +74,8 @@ export default function DiseasesAdminPage() {
             }
         } else {
             // Création
-            const { data, error } = await (supabase as any)
-                .from('diseases')
+            const { data, error } = await (supabase
+                .from('diseases') as any)
                 .insert([{
                     name: formData.name,
                     keywords: keywordArray,
@@ -95,7 +95,7 @@ export default function DiseasesAdminPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette maladie du système de surveillance ?')) return;
 
-        const { error } = await (supabase as any).from('diseases').delete().eq('id', id);
+        const { error } = await supabase.from('diseases').delete().eq('id', id);
         if (!error) {
             setDiseases(diseases.filter(d => d.id !== id));
         } else {

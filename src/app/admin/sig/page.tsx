@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
     Globe, MapPin, Activity, Filter, Loader2, AlertTriangle,
@@ -66,13 +66,7 @@ export default function AdminSIGPage() {
     const [selectedZone, setSelectedZone] = useState<string | null>(null);
     const [totalCenters, setTotalCenters] = useState(0);
 
-    useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 30000);
-        return () => clearInterval(interval);
-    }, []);
-
-    async function fetchData() {
+    const fetchData = useCallback(async () => {
         setRefreshing(true);
         const [reportsRes, clustersRes, centersRes] = await Promise.all([
             supabase.from('reports').select('id, geo_cell, severity, symptoms, created_at').order('created_at', { ascending: false }),
@@ -85,12 +79,18 @@ export default function AdminSIGPage() {
         setTotalCenters(centersRes.count || 0);
         setLoading(false);
         setRefreshing(false);
-    }
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchData();
+        const interval = setInterval(fetchData, 30000);
+        return () => clearInterval(interval);
+    }, [fetchData]);
 
     // Filtrer les rapports par période
     const filteredReports = useMemo(() => {
         if (timeFilter === 'tout') return allReports;
-        const now = Date.now();
+        const now = new Date().getTime();
         const ms = timeFilter === '24h' ? 86400000 : timeFilter === '7j' ? 604800000 : 2592000000;
         return allReports.filter(r => now - new Date(r.created_at).getTime() < ms);
     }, [allReports, timeFilter]);
@@ -149,7 +149,7 @@ export default function AdminSIGPage() {
     };
 
     const formatTimeAgo = (iso: string) => {
-        const diff = Date.now() - new Date(iso).getTime();
+        const diff = new Date().getTime() - new Date(iso).getTime();
         const mins = Math.floor(diff / 60000);
         if (mins < 60) return `${mins}min`;
         const hours = Math.floor(mins / 60);

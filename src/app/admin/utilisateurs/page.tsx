@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
     Users, UserPlus, Phone, CheckCircle,
@@ -58,19 +58,19 @@ export default function AdminUsersPage() {
     // Suppression
     const [deleting, setDeleting] = useState(false);
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    async function fetchUsers() {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('users')
+        const { data, error } = await (supabase
+            .from('users') as any)
             .select('*')
             .order('created_at', { ascending: false });
-        if (!error && data) setUsers(data as UserRow[]);
+        if (!error && data) setUsers(data);
         setLoading(false);
-    }
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
     // === CRÉER UN UTILISATEUR ===
     async function handleCreateUser() {
@@ -130,8 +130,12 @@ export default function AdminUsersPage() {
             setNewRole('community_agent');
             fetchUsers();
 
-        } catch (err: any) {
-            setCreateError(err.message || 'Erreur de connexion serveur');
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setCreateError(err.message || 'Erreur de connexion serveur');
+            } else {
+                setCreateError('Erreur de connexion serveur');
+            }
             setCreating(false);
         }
     }
@@ -147,7 +151,7 @@ export default function AdminUsersPage() {
         if (!editingUser) return;
         setSavingEdit(true);
 
-        await (supabase as any).from('users').update({
+        await (supabase.from('users') as any).update({
             role: editRole,
             language: editLanguage,
         }).eq('id', editingUser.id);
@@ -162,7 +166,7 @@ export default function AdminUsersPage() {
         if (!deletingUser) return;
         setDeleting(true);
 
-        await (supabase as any).from('users').delete().eq('id', deletingUser.id);
+        await (supabase.from('users') as any).delete().eq('id', deletingUser.id);
 
         setDeleting(false);
         setDeletingUser(null);

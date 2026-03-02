@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
     HeartPulse, Search, Filter, RefreshCw, Loader2, Download,
@@ -8,13 +8,21 @@ import {
     ChevronDown
 } from 'lucide-react';
 
+interface ClinicalCaseTests {
+    zone?: string;
+    patient_id?: string;
+    age?: number;
+    gender?: 'M' | 'F';
+    actions?: ('tdr_palu' | 'lab_sample' | 'isolation')[];
+}
+
 interface ClinicalCase {
     id: string;
     facility_id: string;
     syndrome: string;
-    severity: string;
-    status: string;
-    tests: any;
+    severity: 'rouge' | 'jaune' | 'vert';
+    status: 'suspect' | 'probable' | 'confirmed';
+    tests: ClinicalCaseTests | null;
     created_at: string;
 }
 
@@ -30,13 +38,7 @@ export default function CasCliniquesAdmin() {
     const [statusDropOpen, setStatusDropOpen] = useState(false);
     const [severityDropOpen, setSeverityDropOpen] = useState(false);
 
-    useEffect(() => {
-        fetchCases();
-        const interval = setInterval(fetchCases, 30000);
-        return () => clearInterval(interval);
-    }, []);
-
-    async function fetchCases() {
+    const fetchCases = useCallback(async () => {
         setRefreshing(true);
         const { data } = await supabase
             .from('clinical_cases')
@@ -45,7 +47,13 @@ export default function CasCliniquesAdmin() {
         setCases(data || []);
         setLoading(false);
         setRefreshing(false);
-    }
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchCases();
+        const interval = setInterval(fetchCases, 30000);
+        return () => clearInterval(interval);
+    }, [fetchCases]);
 
     // Filtrage
     const filteredCases = useMemo(() => {
