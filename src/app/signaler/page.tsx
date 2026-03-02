@@ -39,6 +39,7 @@ export default function SignalerFlow() {
     const [officialMatch, setOfficialMatch] = useState<any>(null);
     const recognitionRef = useRef<any>(null);
     const transcriptRef = useRef('');
+    const shouldListenRef = useRef(false);
 
     const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null);
     const [gpsStatus, setGpsStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
@@ -137,7 +138,7 @@ export default function SignalerFlow() {
         stopListening();
         window.speechSynthesis.cancel();
 
-        // Timeout de secours au cas où l'API vocal plante silencieusement 
+        // Timeout de secours au cas où l'API vocal plante silencieusement
         // (150ms / caractère garantit que le timeout ne coupe pas une phrase)
         const maxDuration = Math.max(8000, text.length * 150);
         let safetyTimeout: any;
@@ -167,7 +168,19 @@ export default function SignalerFlow() {
     // ==========================================
     // STT (Speech To Text)
     // ==========================================
+    const stopListening = useCallback(() => {
+        shouldListenRef.current = false;
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+        const recognition = recognitionRef.current; // Use the ref to stop the active recognition
+        if (recognition) {
+            recognition.stop();
+        }
+        setIsRecording(false);
+    }, []);
+
     const startListening = useCallback((target: string) => {
+        shouldListenRef.current = true;
         // SÉCURITÉ : On s'assure que l'IA se tait complètement avant d'activer le micro de l'utilisateur
         window.speechSynthesis.cancel();
         if ((window as any).currentAudio) {
@@ -190,6 +203,7 @@ export default function SignalerFlow() {
         if (!SpeechRecognition) return;
 
         const recognition = new SpeechRecognition();
+        recognitionRef.current = recognition;
         recognition.lang = 'fr-FR';
         recognition.continuous = true;
         recognition.interimResults = true;
@@ -244,6 +258,19 @@ export default function SignalerFlow() {
 
         recognition.onend = () => {
             setIsRecording(false);
+
+            // PWA / Mobile Optimization: Redémarrage automatique si le système est censé écouter
+            // mais s'est arrêté prématurément (silence long, timeout OS, etc.)
+            if (shouldListenRef.current) {
+                console.log("PWA: Restarting recognition for persistence...");
+                try {
+                    recognition.start();
+                    return;
+                } catch (e) {
+                    console.error("PWA: Failed to restart recognition:", e);
+                }
+            }
+
             const finalTranscript = transcriptRef.current.trim().toLowerCase();
             if (!finalTranscript) return;
 
@@ -391,7 +418,28 @@ export default function SignalerFlow() {
         recognition.start();
     }, [detectedSymptoms]);
 
-    const stopListening = () => { if (recognitionRef.current) recognitionRef.current.stop(); setIsRecording(false); };
+
+
+    // Gestion du retour au premier plan (PWA Resilience)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && shouldListenRef.current && !isRecording) {
+                console.log("PWA: App returned to foreground, resuming mic...");
+                const currentStep = step;
+                // Re-déclenche l'écoute pour l'étape actuelle
+                if (currentStep.startsWith('ask_') || currentStep.startsWith('listening_') || currentStep.startsWith('listen_')) {
+                    const target = currentStep === 'listening_lang' ? 'lang' :
+                        currentStep.startsWith('listen_') ? currentStep :
+                            `listen_${currentStep.replace('ask_', '')}`;
+                    startListening(target);
+                }
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [step, isRecording, startListening]);
+
 
     // ==========================================
     // CYCLE DE VIE VOCAL
